@@ -61,7 +61,7 @@ const ProtectedRoute = ({ children, role }: { children: React.ReactNode, role?: 
 
 // Pages (Placeholders for remaining)
 const NotFound = () => <div>404 Not Found</div>;
-const Profile = () => <div>Profile</div>;
+const Profile = lazy(() => import('@/pages/Profile').then(module => ({ default: module.Profile })));
 
 // Admin Pages Placeholders for remaining
 const AdminAnalytics = () => <div>Admin Analytics</div>;
@@ -79,8 +79,16 @@ const router = createBrowserRouter([
       { path: 'products/:id', element: <ProductDetails /> },
       { path: 'cart', element: <Cart /> },
       { path: 'login', element: <Login /> },
-      { path: 'checkout', element: <Checkout /> },
       
+      // General Protected Routes (Any logged in user)
+      {
+        element: <ProtectedRoute><Outlet /></ProtectedRoute>,
+        children: [
+          { path: 'checkout', element: <Checkout /> },
+          { path: 'profile', element: <Profile /> },
+        ]
+      },
+
       // Customer Protected Routes
       {
         element: <ProtectedRoute role="customer"><Outlet /></ProtectedRoute>,
@@ -88,7 +96,6 @@ const router = createBrowserRouter([
           { path: 'orders', element: <Orders /> },
           { path: 'orders/:id', element: <OrderDetails /> },
           { path: 'payments/:status', element: <PaymentStatus /> },
-          { path: 'profile', element: <Profile /> },
         ]
       }
     ]

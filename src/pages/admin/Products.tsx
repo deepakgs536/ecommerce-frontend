@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
+import type { RootState } from '@/store';
 import { ProductAPI, MediaAPI } from '@/api/services';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,11 +8,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2, ShieldCheck } from 'lucide-react';
 
 import { useNavigate } from 'react-router-dom';
 
 export const AdminProducts = () => {
+  const { user } = useSelector((state: RootState) => state.auth);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingProduct, setEditingProduct] = useState<any>(null);
@@ -103,11 +106,25 @@ export const AdminProducts = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold tracking-tight">Products Management</h1>
-        <Button onClick={() => navigate('/admin/products/create')}>
-          <Plus className="mr-2 h-4 w-4" /> Add Product
-        </Button>
+      <div className="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Products Management</h1>
+          <p className="text-slate-500 mt-1">Manage your store inventory and pricing.</p>
+        </div>
+        <div className="flex items-center gap-4">
+          {/* DEMO PURPOSES: Verify Role */}
+          <div className="hidden md:flex items-center gap-2 bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl">
+            <ShieldCheck className="w-5 h-5 text-indigo-500" />
+            <div className="flex flex-col">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Active Role</span>
+              <span className="text-sm font-bold text-slate-900 capitalize">{user?.role || 'Unknown'}</span>
+            </div>
+          </div>
+          
+          <Button onClick={() => navigate('/admin/products/create')} className="h-12 px-6 rounded-xl shadow-lg shadow-primary/20">
+            <Plus className="mr-2 h-4 w-4" /> Add Product
+          </Button>
+        </div>
       </div>
 
       <Card className="premium-shadow">

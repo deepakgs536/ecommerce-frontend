@@ -1,51 +1,117 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { loginSuccess } from '@/store/slices/authSlice';
+import { loginSuccess, logout } from '@/store/slices/authSlice';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, ArrowRight } from 'lucide-react';
+import { Sparkles, ArrowRight, MailCheck } from 'lucide-react';
+import { signUp, confirmSignUp, signIn, fetchAuthSession, signOut } from 'aws-amplify/auth';
+
+type AuthStep = 'LOGIN' | 'SIGNUP' | 'CONFIRM';
 
 export const Login = () => {
-  const [isLogin, setIsLogin] = useState(true);
+  const [step, setStep] = useState<AuthStep>('LOGIN');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState<'customer' | 'admin'>('customer');
+  const [confirmationCode, setConfirmationCode] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const handleAuth = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (email && password && (isLogin || name)) {
-      const role = email.includes('admin') ? 'admin' : 'customer';
-      const user = { 
-        id: 'u_1', 
-        name: isLogin ? 'Test User' : name, 
-        email, 
-        role: role as 'admin' | 'customer' 
-      };
-      const token = 'mock_jwt_token_xyz';
-
-      dispatch(loginSuccess({ user, token }));
-      toast.success(isLogin ? 'Welcome back!' : 'Account created successfully!');
-      
-      if (role === 'admin') {
-        navigate('/admin');
-      } else {
-        navigate('/');
+  // Clear any stale local AWS session when mounting the Login page
+  useEffect(() => {
+    const clearStaleSession = async () => {
+      try {
+        await signOut();
+        dispatch(logout());
+      } catch (err) {
+        // Safely ignore, the user just didn't have an active session
       }
-    } else {
-      toast.error('Please fill in all required fields');
+    };
+    clearStaleSession();
+  }, [dispatch]);
+
+  const handleAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      if (step === 'SIGNUP') {
+        await signUp({
+          username: email,
+          password,
+          options: {
+            userAttributes: {
+              email,
+              name,
+              'custom:role': role
+            }
+          }
+        });
+        toast.success('Sign up successful! Please check your email for the code.');
+        setStep('CONFIRM');
+      } else if (step === 'CONFIRM') {
+        await confirmSignUp({
+          username: email,
+          confirmationCode
+        });
+        toast.success('Email confirmed! You can now log in.');
+        setStep('LOGIN');
+        setConfirmationCode('');
+        setPassword('');
+      } else if (step === 'LOGIN') {
+        await signIn({
+          username: email,
+          password
+        });
+        
+        const session = await fetchAuthSession();
+        const accessToken = session.tokens?.accessToken?.toString() || '';
+        const payload = session.tokens?.idToken?.payload || {};
+        
+        // Extract role from Cognito Groups (e.g., ['admin'])
+        const groups = payload['cognito:groups'] as string[] | undefined;
+        const userRole = groups?.includes('admin') ? 'admin' : 'customer';
+        const userName = (payload.name as string) || 'User';
+        
+        const user = {
+          id: payload.sub as string,
+          name: userName,
+          email,
+          role: userRole
+        };
+
+        console.log('User logged in:', user, 'Access Token:', accessToken, 'Role:', userRole);
+
+        dispatch(loginSuccess({ user, token: accessToken }));
+        toast.success('Welcome back!');
+        
+        if (userRole === 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/');
+        }
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'An error occurred during authentication');
+      console.error(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  const isLogin = step === 'LOGIN';
+
   return (
     <div className="flex h-[calc(100vh-64px)] w-full overflow-hidden bg-[#FAFAFA]">
-      <div className={`flex w-full h-full flex-col lg:flex-row ${!isLogin ? 'lg:flex-row-reverse' : ''}`}>
+      <div className={`flex w-full h-full flex-col lg:flex-row ${step === 'SIGNUP' || step === 'CONFIRM' ? 'lg:flex-row-reverse' : ''}`}>
         
-        {/* Aesthetic Image Panel (Slides Left/Right on Desktop) */}
+        {/* Aesthetic Image Panel */}
         <motion.div 
           layout
           transition={{ type: "spring", stiffness: 90, damping: 20 }}
@@ -101,7 +167,7 @@ export const Login = () => {
           </div>
         </motion.div>
 
-        {/* Form Panel (Slides Right/Left on Desktop) */}
+        {/* Form Panel */}
         <motion.div 
           layout
           transition={{ type: "spring", stiffness: 90, damping: 20 }}
@@ -111,17 +177,22 @@ export const Login = () => {
             
             <motion.div layout="position" className="text-center lg:text-left mb-5">
               <h1 className="text-4xl font-black tracking-tight text-slate-900 mb-3">
-                {isLogin ? 'Sign In' : 'Create Account'}
+                {step === 'LOGIN' && 'Sign In'}
+                {step === 'SIGNUP' && 'Create Account'}
+                {step === 'CONFIRM' && 'Verify Email'}
               </h1>
               <p className="text-slate-500 font-medium text-lg">
-                {isLogin ? 'Enter your details to access your account.' : 'Join us to get started with your journey.'}
+                {step === 'LOGIN' && 'Enter your details to access your account.'}
+                {step === 'SIGNUP' && 'Join us to get started with your journey.'}
+                {step === 'CONFIRM' && 'Enter the 6-digit code sent to your email.'}
               </p>
             </motion.div>
 
             <form onSubmit={handleAuth} className="space-y-5">
               <AnimatePresence mode="popLayout">
-                {!isLogin && (
+                {step === 'SIGNUP' && (
                   <motion.div
+                    key="name-field"
                     initial={{ opacity: 0, height: 0, y: -20 }}
                     animate={{ opacity: 1, height: 'auto', y: 0 }}
                     exit={{ opacity: 0, height: 0, y: -20 }}
@@ -136,62 +207,121 @@ export const Login = () => {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       className="h-12 lg:h-14 bg-white border-slate-200 rounded-xl px-4 focus-visible:ring-slate-300"
-                      required={!isLogin}
+                      required
+                    />
+                  </motion.div>
+                )}
+
+                {(step === 'LOGIN' || step === 'SIGNUP' || step === 'CONFIRM') && (
+                  <motion.div layout="position" key="email-field" className="space-y-2">
+                    <label htmlFor="email" className="text-sm font-bold text-slate-700">Email Address</label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="hello@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="h-12 lg:h-14 bg-white border-slate-200 rounded-xl px-4 focus-visible:ring-slate-300"
+                      required
+                      disabled={step === 'CONFIRM'}
+                    />
+                  </motion.div>
+                )}
+
+                {step === 'SIGNUP' && (
+                  <motion.div
+                    key="role-field"
+                    initial={{ opacity: 0, height: 0, y: -20 }}
+                    animate={{ opacity: 1, height: 'auto', y: 0 }}
+                    exit={{ opacity: 0, height: 0, y: -20 }}
+                    transition={{ duration: 0.3 }}
+                    className="space-y-2 overflow-hidden"
+                  >
+                    <label className="text-sm font-bold text-slate-700">Account Type</label>
+                    <div className="flex bg-slate-100 p-1 rounded-xl">
+                      <button
+                        type="button"
+                        onClick={() => setRole('customer')}
+                        className={`flex-1 py-3 text-sm font-bold rounded-lg transition-all ${role === 'customer' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                      >
+                        Customer
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setRole('admin')}
+                        className={`flex-1 py-3 text-sm font-bold rounded-lg transition-all ${role === 'admin' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                      >
+                        Admin
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+                
+                {(step === 'LOGIN' || step === 'SIGNUP') && (
+                  <motion.div layout="position" key="password-field" className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label htmlFor="password" className="text-sm font-bold text-slate-700">Password</label>
+                      {step === 'LOGIN' && <a href="#" className="text-sm font-semibold text-slate-500 hover:text-slate-900 transition-colors">Forgot password?</a>}
+                    </div>
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="h-12 lg:h-14 bg-white border-slate-200 rounded-xl px-4 focus-visible:ring-slate-300"
+                      required
+                    />
+                  </motion.div>
+                )}
+
+                {step === 'CONFIRM' && (
+                  <motion.div
+                    key="confirm-field"
+                    initial={{ opacity: 0, height: 0, y: -20 }}
+                    animate={{ opacity: 1, height: 'auto', y: 0 }}
+                    exit={{ opacity: 0, height: 0, y: -20 }}
+                    transition={{ duration: 0.3 }}
+                    className="space-y-2 overflow-hidden"
+                  >
+                    <label htmlFor="code" className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                      <MailCheck className="w-4 h-4 text-slate-400" /> Verification Code
+                    </label>
+                    <Input
+                      id="code"
+                      type="text"
+                      placeholder="123456"
+                      value={confirmationCode}
+                      onChange={(e) => setConfirmationCode(e.target.value)}
+                      className="h-12 lg:h-14 bg-white border-slate-200 rounded-xl px-4 focus-visible:ring-slate-300 text-center tracking-widest text-lg font-mono"
+                      required
+                      maxLength={6}
                     />
                   </motion.div>
                 )}
               </AnimatePresence>
 
-              <motion.div layout="position" className="space-y-2">
-                <label htmlFor="email" className="text-sm font-bold text-slate-700">Email Address</label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="hello@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="h-12 lg:h-14 bg-white border-slate-200 rounded-xl px-4 focus-visible:ring-slate-300"
-                  required
-                />
-              </motion.div>
-              
-              <motion.div layout="position" className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label htmlFor="password" className="text-sm font-bold text-slate-700">Password</label>
-                  {isLogin && <a href="#" className="text-sm font-semibold text-slate-500 hover:text-slate-900 transition-colors">Forgot password?</a>}
-                </div>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="h-12 lg:h-14 bg-white border-slate-200 rounded-xl px-4 focus-visible:ring-slate-300"
-                  required
-                />
-              </motion.div>
-
               <motion.div layout="position" className="pt-2">
-                <Button type="submit" className="w-full h-12 lg:h-14 rounded-xl text-base font-bold shadow-lg shadow-slate-200 hover:-translate-y-0.5 transition-transform group">
-                  {isLogin ? 'Sign In' : 'Create Account'}
-                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                <Button type="submit" disabled={isLoading} className="w-full h-12 lg:h-14 rounded-xl text-base font-bold shadow-lg shadow-slate-200 hover:-translate-y-0.5 transition-transform group">
+                  {isLoading ? 'Processing...' : (
+                    step === 'LOGIN' ? 'Sign In' : 
+                    step === 'SIGNUP' ? 'Create Account' : 
+                    'Confirm Email'
+                  )}
+                  {!isLoading && <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />}
                 </Button>
               </motion.div>
             </form>
 
             <motion.div layout="position">
-              <div className="relative my-8">
-                
-              </div>
-
               <p className="text-center text-slate-500 font-medium mt-8">
-                {isLogin ? "Don't have an account? " : "Already have an account? "}
+                {step === 'LOGIN' ? "Don't have an account? " : step === 'SIGNUP' ? "Already have an account? " : "Need to change email? "}
                 <button 
                   type="button"
-                  onClick={() => setIsLogin(!isLogin)}
+                  onClick={() => setStep(step === 'LOGIN' ? 'SIGNUP' : 'LOGIN')}
                   className="text-slate-900 font-bold hover:underline transition-all focus:outline-none"
                 >
-                  {isLogin ? 'Sign up' : 'Log in'}
+                  {step === 'LOGIN' ? 'Sign up' : 'Log in'}
                 </button>
               </p>
             </motion.div>

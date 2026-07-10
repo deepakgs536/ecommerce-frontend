@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, ShoppingBag, Receipt, Truck, CreditCard, ShieldCheck } from 'lucide-react';
+import { CartItemImage } from '@/components/ui/CartItemImage';
 
 export const Checkout = () => {
   const { items, totalAmount } = useSelector((state: RootState) => state.cart);
@@ -127,7 +128,7 @@ export const Checkout = () => {
                       {items.map(item => (
                         <div key={item.productId} className="flex items-center gap-6 p-8 bg-white">
                           <div className="w-24 h-24 rounded-2xl overflow-hidden bg-slate-100 shrink-0">
-                            <img src={item.image_url || 'https://images.unsplash.com/photo-1560393464-5c69a73c5770?w=200&q=80'} alt={item.name} className="w-full h-full object-cover" />
+                            <CartItemImage item={item} className="w-full h-full object-cover" />
                           </div>
                           <div className="flex-1">
                             <h3 className="text-lg font-bold text-slate-900">{item.name}</h3>

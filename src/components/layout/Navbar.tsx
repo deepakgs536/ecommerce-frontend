@@ -1,12 +1,15 @@
 import { Link, useLocation } from 'react-router-dom';
 import { ShoppingCart, User, Package, LogIn, ChevronDown } from 'lucide-react';
 import { Button } from '../ui/button';
+import { useSelector } from 'react-redux';
+import type { RootState } from '@/store';
 
 const CATEGORIES = ['Electronics', 'Apparel', 'Home & Living', 'Accessories'];
 
 export const Navbar = () => {
   const location = useLocation();
   const isLandingPage = location.pathname === '/';
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
@@ -56,12 +59,21 @@ export const Navbar = () => {
                   <span className="absolute top-1 right-1 h-2.5 w-2.5 rounded-full bg-primary border-2 border-background" />
                 </Button>
               </Link>
-              <Link to="/login">
-                <Button variant="outline" className="rounded-full px-5 font-semibold hover:bg-primary/5">
-                  <User className="mr-2 h-4 w-4" />
-                  Account
-                </Button>
-              </Link>
+              {isAuthenticated ? (
+                <Link to="/profile">
+                  <Button variant="outline" className="rounded-full px-5 font-semibold hover:bg-primary/5">
+                    <User className="mr-2 h-4 w-4" />
+                    Profile
+                  </Button>
+                </Link>
+              ) : (
+                <Link to="/login">
+                  <Button variant="outline" className="rounded-full px-5 font-semibold hover:bg-primary/5">
+                    <LogIn className="mr-2 h-4 w-4" />
+                    Login
+                  </Button>
+                </Link>
+              )}
             </div>
           </>
         ) : (
