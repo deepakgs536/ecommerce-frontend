@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ProductAPI } from '@/api/services';
+import { ProductAPI, MediaAPI } from '@/api/services';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -63,7 +63,35 @@ export const AdminProducts = () => {
     const fetchProducts = async () => {
       try {
         const response = await ProductAPI.getAll();
-        setProducts(response.data.data);
+
+        const productsWithSignedUrls = await Promise.all(
+          response.data.data.map(async (product: any) => {
+            if (!product.image_url) {
+              return product;
+            }
+
+            try {
+              const mediaResponse = await MediaAPI.getDownloadUrl(product.image_url);
+
+              return {
+                ...product,
+                image_url: mediaResponse.data.url
+              };
+            } catch (err) {
+              console.error(
+                `Failed to generate signed URL for ${product.productId}`,
+                err
+              );
+
+              return {
+                ...product,
+                image_url: ""
+              };
+            }
+          })
+        );
+
+        setProducts(productsWithSignedUrls);
       } catch (error) {
         toast.error('Failed to load products');
       } finally {

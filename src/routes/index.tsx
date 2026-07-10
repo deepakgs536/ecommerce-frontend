@@ -79,12 +79,12 @@ const router = createBrowserRouter([
       { path: 'products/:id', element: <ProductDetails /> },
       { path: 'cart', element: <Cart /> },
       { path: 'login', element: <Login /> },
+      { path: 'checkout', element: <Checkout /> },
       
       // Customer Protected Routes
       {
         element: <ProtectedRoute role="customer"><Outlet /></ProtectedRoute>,
         children: [
-          { path: 'checkout', element: <Checkout /> },
           { path: 'orders', element: <Orders /> },
           { path: 'orders/:id', element: <OrderDetails /> },
           { path: 'payments/:status', element: <PaymentStatus /> },

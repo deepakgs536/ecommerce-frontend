@@ -1,29 +1,26 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { ShoppingBag, Truck, ShieldCheck, Zap, Star, ArrowRight, Mail } from 'lucide-react';
+import { Sparkles, ArrowRight, Truck, CheckCircle2, MessageSquare, Play, Star } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { ProductAPI } from '@/api/services';
+import { ProductAPI, MediaAPI } from '@/api/services';
 import { ProductCard } from '@/components/ui/ProductCard';
 import { useDispatch } from 'react-redux';
 import { addToCart } from '@/store/slices/cartSlice';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
-import { motion } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import type { Variants } from 'framer-motion';
 
-const fadeInUp = {
-  hidden: { opacity: 0, y: 40 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } }
+const fadeUp: Variants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }
 };
 
-const staggerContainer = {
+const stagger = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: {
-      staggerChildren: 0.1
-    }
+    transition: { staggerChildren: 0.12 }
   }
 };
 
@@ -31,14 +28,28 @@ export const Home = () => {
   const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const dispatch = useDispatch();
+  const { scrollYProgress } = useScroll();
+  const yParallax = useTransform(scrollYProgress, [0, 1], [0, 150]);
+  const opacityFade = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const response = await ProductAPI.getAll();
-        setFeaturedProducts(response.data.data.slice(0, 4));
+        const productsWithUrls = await Promise.all(
+          response.data.data.map(async (p: any) => {
+            if (!p.image_url) return p;
+            try {
+              const res = await MediaAPI.getDownloadUrl(p.image_url);
+              return { ...p, image_url: res.data.url };
+            } catch (e) {
+              return { ...p, image_url: "" };
+            }
+          })
+        );
+        setFeaturedProducts(productsWithUrls.slice(0, 4));
       } catch (error) {
-        console.error('Failed to load featured products', error);
+        console.error('Failed to load products', error);
       } finally {
         setLoading(false);
       }
@@ -52,266 +63,251 @@ export const Home = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-background pt-24 pb-32 lg:pt-36 lg:pb-40">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/20 via-background to-background z-0" />
-        <div className="container relative z-10 px-4 md:px-6">
-          <div className="grid gap-12 lg:grid-cols-2 lg:gap-8 items-center">
+    <div className="flex flex-col min-h-screen bg-[#FAFAFA] text-slate-900 selection:bg-slate-200">
+      
+      {/* 1. SCROLLYTELLING HERO (Light & Airy) */}
+      <section className="relative overflow-hidden min-h-[90vh] flex items-center pt-20 pb-32">
+        <div className="absolute inset-0 pointer-events-none z-0">
+          <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-slate-100 rounded-full blur-[100px] opacity-60 translate-x-1/3 -translate-y-1/4" />
+          <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-blue-50 rounded-full blur-[80px] opacity-60 -translate-x-1/3 translate-y-1/3" />
+        </div>
+
+        <div className="container relative z-10 px-6">
+          <div className="grid lg:grid-cols-12 gap-12 items-center">
+            
             <motion.div 
-              initial="hidden" animate="visible" variants={staggerContainer}
-              className="flex flex-col justify-center space-y-8 text-center lg:text-left"
+              initial="hidden" animate="visible" variants={stagger}
+              className="lg:col-span-6 flex flex-col space-y-8"
             >
-              <motion.div variants={fadeInUp} className="flex justify-center lg:justify-start">
-                <Badge variant="outline" className="py-1.5 px-4 rounded-full border-primary/30 bg-primary/5 text-primary text-sm font-medium backdrop-blur-sm">
-                  <span className="flex h-2 w-2 rounded-full bg-primary mr-2 animate-pulse"></span>
-                  Spring Collection 2026 is Live
-                </Badge>
+              <motion.div variants={fadeUp}>
+                <div className="inline-flex items-center rounded-full border border-slate-200 bg-white px-4 py-1.5 text-sm font-medium text-slate-600 shadow-sm">
+                  <Sparkles className="mr-2 h-4 w-4 text-amber-500" />
+                  Spring 2026 Collection
+                </div>
               </motion.div>
-              <motion.div variants={fadeInUp} className="space-y-4">
-                <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight lg:text-8xl">
-                  Redefine <br className="hidden lg:block" />
-                  <span className="gradient-text">Your Style.</span>
+              
+              <motion.div variants={fadeUp} className="space-y-6">
+                <h1 className="text-6xl md:text-8xl font-black tracking-tighter leading-[1.05] text-slate-900">
+                  Elevate <br/>
+                  <span className="text-slate-400 font-light italic">the Everyday.</span>
                 </h1>
-                <p className="max-w-[600px] mx-auto lg:mx-0 text-lg md:text-xl text-muted-foreground leading-relaxed">
-                  Experience the perfect blend of minimalist design and premium quality. Curated essentials for the modern lifestyle.
+                <p className="max-w-md text-lg md:text-xl text-slate-600 font-medium leading-relaxed">
+                  Mindfully crafted essentials designed to bring clarity, comfort, and quiet luxury to your modern life.
                 </p>
               </motion.div>
-              <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+
+              <motion.div variants={fadeUp} className="flex flex-wrap gap-4 pt-4">
                 <Link to="/products">
-                  <Button size="lg" className="h-14 px-8 text-lg rounded-full w-full sm:w-auto shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all duration-300">
-                    Explore Collection <ArrowRight className="ml-2 h-5 w-5" />
+                  <Button size="lg" className="h-14 px-8 rounded-full text-base font-semibold shadow-lg shadow-slate-200 hover:-translate-y-0.5 transition-transform">
+                    Shop Collection
                   </Button>
                 </Link>
                 <Link to="/about">
-                  <Button size="lg" variant="outline" className="h-14 px-8 text-lg rounded-full w-full sm:w-auto bg-background/50 backdrop-blur-md border-border/50 hover:bg-muted/50">
-                    Our Story
+                  <Button size="lg" variant="outline" className="h-14 px-8 rounded-full text-base font-semibold bg-white border-slate-200 hover:bg-slate-50 hover:-translate-y-0.5 transition-transform">
+                    <Play className="mr-2 h-4 w-4" /> Watch Film
                   </Button>
                 </Link>
               </motion.div>
-            </motion.div>
-            
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9, rotate: -2 }}
-              animate={{ opacity: 1, scale: 1, rotate: 0 }}
-              transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
-              className="mx-auto w-full max-w-[500px] lg:max-w-none relative hidden md:block"
-            >
-              <div className="relative rounded-2xl overflow-hidden glass-panel aspect-[4/3] shadow-2xl">
-                <img 
-                  src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=1200&auto=format&fit=crop" 
-                  alt="Premium Collection" 
-                  className="object-cover w-full h-full hover:scale-105 transition-transform duration-700"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-8">
-                   <div className="text-white">
-                      <p className="font-bold text-xl mb-1">Essential Collection</p>
-                      <p className="text-white/80 text-sm">Starting at $49.99</p>
-                   </div>
+
+              <motion.div variants={fadeUp} className="pt-8 flex items-center gap-4 text-sm font-medium text-slate-500">
+                <div className="flex -space-x-2">
+                  {[1,2,3,4].map(i => (
+                     <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-slate-200 overflow-hidden">
+                       <img src={`https://i.pravatar.cc/100?img=${i+10}`} alt="Customer" />
+                     </div>
+                  ))}
                 </div>
+                <p>Loved by 10,000+ minimalists.</p>
+              </motion.div>
+            </motion.div>
+
+            <motion.div 
+              style={{ y: yParallax, opacity: opacityFade }}
+              className="lg:col-span-6 relative hidden lg:block h-[700px] w-full"
+            >
+              <div className="absolute inset-0 rounded-[2.5rem] overflow-hidden shadow-2xl bg-slate-100">
+                <img 
+                  src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=1200&auto=format&fit=crop" 
+                  alt="Minimalist Headphones" 
+                  className="object-cover w-full h-full object-center"
+                />
               </div>
               
-              {/* Decorative elements */}
-              <div className="absolute -top-6 -right-6 w-24 h-24 bg-primary/20 rounded-full blur-2xl -z-10"></div>
-              <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-blue-500/20 rounded-full blur-2xl -z-10"></div>
+              {/* Floating Data Card */}
+              <motion.div 
+                initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.8, duration: 0.8 }}
+                className="absolute top-1/4 -left-12 bg-white/80 backdrop-blur-xl p-4 rounded-2xl shadow-xl border border-white/40 flex items-center gap-4"
+              >
+                <div className="h-12 w-12 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold">
+                  $89
+                </div>
+                <div>
+                  <p className="font-bold text-slate-900 leading-tight">Studio Pro</p>
+                  <p className="text-sm text-slate-500 font-medium">Noise Cancelling</p>
+                </div>
+              </motion.div>
             </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Trust Badges */}
-      <section className="py-12 bg-muted/30 border-y border-border/50">
-        <div className="container px-4">
+      {/* 2. THE BENTO GRID (Categories & Trust) */}
+      <section className="py-24 bg-white relative">
+        <div className="container px-6">
           <motion.div 
-            initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={staggerContainer}
-            className="grid grid-cols-1 md:grid-cols-3 gap-8"
+            initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={fadeUp}
+            className="mb-16"
           >
-            <motion.div variants={fadeInUp} className="flex items-center space-x-4 p-4 rounded-xl hover:bg-background/50 transition-colors">
-              <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
-                <Truck className="h-6 w-6" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg">Free Global Delivery</h3>
-                <p className="text-sm text-muted-foreground">On all orders above $150</p>
-              </div>
-            </motion.div>
-            <motion.div variants={fadeInUp} className="flex items-center space-x-4 p-4 rounded-xl hover:bg-background/50 transition-colors">
-              <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
-                <ShieldCheck className="h-6 w-6" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg">Secure Checkout</h3>
-                <p className="text-sm text-muted-foreground">100% protected payments</p>
-              </div>
-            </motion.div>
-            <motion.div variants={fadeInUp} className="flex items-center space-x-4 p-4 rounded-xl hover:bg-background/50 transition-colors">
-              <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
-                <Zap className="h-6 w-6" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg">Instant Refunds</h3>
-                <p className="text-sm text-muted-foreground">30-day return policy</p>
-              </div>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Featured Categories */}
-      <section className="py-24 bg-background">
-        <div className="container px-4">
-          <motion.div 
-            initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp}
-            className="flex flex-col md:flex-row justify-between items-end mb-12 gap-4"
-          >
-            <div>
-              <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">Shop by Category</h2>
-              <p className="text-muted-foreground text-lg">Curated collections for your lifestyle</p>
-            </div>
+            <h2 className="text-4xl font-black tracking-tight mb-4">Discover the Ecosystem</h2>
+            <p className="text-slate-500 text-xl font-medium">Everything you need, nothing you don't.</p>
           </motion.div>
           
-          <motion.div 
-            initial="hidden" whileInView="visible" viewport={{ once: true }} variants={staggerContainer}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
-          >
-            {[
-              { name: 'Electronics', img: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?q=80&w=600&auto=format&fit=crop' },
-              { name: 'Apparel', img: 'https://images.unsplash.com/photo-1445205170230-053b83016050?q=80&w=600&auto=format&fit=crop' },
-              { name: 'Home & Living', img: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=600&auto=format&fit=crop' },
-              { name: 'Accessories', img: 'https://images.unsplash.com/photo-1523206489230-c012c64b2b48?q=80&w=600&auto=format&fit=crop' }
-            ].map((cat, idx) => (
-              <motion.div key={idx} variants={fadeInUp}>
-                <Link to={`/products?category=${cat.name.toLowerCase()}`} className="group block">
-                  <Card className="overflow-hidden border-none premium-shadow bg-background h-[300px] relative rounded-2xl">
-                    <img 
-                      src={cat.img} 
-                      alt={cat.name} 
-                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-in-out" 
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-opacity" />
-                    <CardContent className="p-6 flex flex-col items-start justify-end h-full relative z-10 text-left">
-                      <h3 className="text-2xl font-bold mb-1 text-white">{cat.name}</h3>
-                      <span className="text-sm font-medium text-white/80 flex items-center group-hover:text-white transition-colors">
-                        Explore <ArrowRight className="ml-1 h-4 w-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
-                      </span>
-                    </CardContent>
-                  </Card>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[250px]">
+            {/* Big Category Box */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}
+              className="md:col-span-2 md:row-span-2 rounded-[2rem] overflow-hidden relative group bg-slate-100"
+            >
+              <img src="https://images.unsplash.com/photo-1498049794561-7780e7231661?q=80&w=1200&auto=format&fit=crop" alt="Electronics" className="absolute inset-0 w-full h-full object-cover mix-blend-multiply opacity-90 group-hover:scale-105 transition-transform duration-1000 ease-out" />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent" />
+              <div className="absolute bottom-0 left-0 p-10 text-white">
+                <h3 className="text-3xl font-bold mb-2">Workspace Essentials</h3>
+                <Link to="/products?category=electronics" className="inline-flex items-center font-semibold hover:gap-2 transition-all">
+                  Shop Now <ArrowRight className="ml-1 h-5 w-5" />
                 </Link>
-              </motion.div>
-            ))}
-          </motion.div>
+              </div>
+            </motion.div>
+
+            {/* Small Category Box */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.1 }}
+              className="rounded-[2rem] overflow-hidden relative group bg-slate-100"
+            >
+              <img src="https://images.unsplash.com/photo-1445205170230-053b83016050?q=80&w=600&auto=format&fit=crop" alt="Apparel" className="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-1000 ease-out" />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent" />
+              <div className="absolute bottom-0 left-0 p-8 text-white">
+                <h3 className="text-2xl font-bold mb-1">Apparel</h3>
+                <Link to="/products?category=apparel" className="text-sm font-semibold hover:underline">Explore</Link>
+              </div>
+            </motion.div>
+
+            {/* Trust Box (Data Backed) */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.2 }}
+              className="rounded-[2rem] bg-slate-50 p-8 flex flex-col justify-center border border-slate-100"
+            >
+              <Truck className="h-8 w-8 text-slate-900 mb-4" />
+              <h3 className="text-3xl font-black text-slate-900 mb-1">3x Faster</h3>
+              <p className="text-slate-500 font-medium">Average delivery time compared to industry standards. Free over $150.</p>
+            </motion.div>
+          </div>
         </div>
       </section>
 
-      {/* Featured Products */}
-      <section className="py-24 bg-muted/20">
-        <div className="container px-4">
-          <motion.div 
-            initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp}
-            className="flex flex-col sm:flex-row justify-between items-end mb-12 gap-4"
-          >
+      {/* 3. PRODUCT-AS-DEMO (Featured) */}
+      <section className="py-32 bg-[#FAFAFA]">
+        <div className="container px-6">
+          <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">Trending Now</h2>
-              <p className="text-muted-foreground text-lg">Our most popular items this week</p>
+              <h2 className="text-4xl font-black tracking-tight mb-4">Curated For You</h2>
+              <p className="text-slate-500 text-xl font-medium">A selection of our finest pieces.</p>
             </div>
             <Link to="/products">
-              <Button variant="outline" className="rounded-full px-6">View All <ArrowRight className="ml-2 h-4 w-4" /></Button>
+              <Button variant="outline" className="rounded-full px-8 h-12 font-semibold bg-white border-slate-200">
+                View All <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
             </Link>
-          </motion.div>
+          </div>
 
           {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-              {[...Array(4)].map((_, i) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+              {[1,2,3,4].map((i) => (
                 <div key={i} className="space-y-4">
-                  <Skeleton className="h-[300px] w-full rounded-2xl" />
-                  <Skeleton className="h-5 w-3/4" />
-                  <Skeleton className="h-5 w-1/2" />
+                  <Skeleton className="h-[400px] w-full rounded-[2rem]" />
+                  <Skeleton className="h-6 w-3/4 rounded-md" />
                 </div>
               ))}
             </div>
           ) : (
             <motion.div 
-              initial="hidden" whileInView="visible" viewport={{ once: true }} variants={staggerContainer}
-              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6"
+              initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"
             >
               {featuredProducts.map(product => (
-                <motion.div key={product.productId} variants={fadeInUp}>
-                  <ProductCard 
-                    product={product} 
-                    onAddToCart={handleAddToCart}
-                  />
+                <motion.div key={product.productId} variants={fadeUp}>
+                  <ProductCard product={product} onAddToCart={handleAddToCart} />
                 </motion.div>
               ))}
             </motion.div>
           )}
         </div>
       </section>
-      
-      {/* Testimonials */}
-      <section className="py-24 bg-primary text-primary-foreground">
-        <div className="container px-4">
-          <motion.div 
-            initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp}
-            className="text-center mb-16"
-          >
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">Loved by Thousands</h2>
-            <p className="text-primary-foreground/80 text-lg max-w-2xl mx-auto">Don't just take our word for it. Here's what our community has to say.</p>
-          </motion.div>
-          
-          <motion.div 
-             initial="hidden" whileInView="visible" viewport={{ once: true }} variants={staggerContainer}
-             className="grid grid-cols-1 md:grid-cols-3 gap-8"
-          >
-            {[
-              { name: "Sarah Jenkins", role: "Verified Buyer", text: "The quality is absolutely unmatched. I've bought three items so far and each one exceeded my expectations." },
-              { name: "Michael Chen", role: "Premium Member", text: "Lightning fast shipping and the packaging felt so premium. Will definitely be shopping here again for gifts." },
-              { name: "Emma Rodriguez", role: "Verified Buyer", text: "Customer service was incredibly helpful when I needed to exchange sizes. A truly seamless experience from start to finish." }
-            ].map((testimonial, i) => (
-              <motion.div key={i} variants={fadeInUp} className="bg-primary-foreground/10 p-8 rounded-2xl backdrop-blur-sm border border-primary-foreground/10">
-                <div className="flex gap-1 mb-6">
-                  {[1,2,3,4,5].map(star => <Star key={star} className="h-5 w-5 fill-yellow-400 text-yellow-400" />)}
-                </div>
-                <p className="text-lg mb-6 leading-relaxed">"{testimonial.text}"</p>
-                <div>
-                  <p className="font-semibold">{testimonial.name}</p>
-                  <p className="text-sm text-primary-foreground/70">{testimonial.role}</p>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
+
+      {/* 4. CONVERSATIONAL AI HOOK */}
+      <section className="py-24 bg-white border-y border-slate-100">
+        <div className="container px-6">
+          <div className="bg-slate-50 rounded-[3rem] p-10 md:p-20 text-center max-w-5xl mx-auto border border-slate-100 shadow-sm relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 text-slate-200 opacity-50">
+              <MessageSquare className="h-64 w-64 -rotate-12" />
+            </div>
+            <div className="relative z-10 max-w-2xl mx-auto flex flex-col items-center">
+              <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mb-8">
+                <Sparkles className="h-8 w-8 text-slate-900" />
+              </div>
+              <h2 className="text-4xl md:text-5xl font-black tracking-tight mb-6 text-slate-900">
+                Not sure where to start?
+              </h2>
+              <p className="text-xl text-slate-500 font-medium mb-10 leading-relaxed">
+                Chat with our AI Stylist. Tell us about your lifestyle, and we'll curate a personalized collection just for you.
+              </p>
+              <Button size="lg" className="h-14 px-10 rounded-full text-base font-semibold shadow-lg shadow-slate-200">
+                Start Conversation
+              </Button>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Newsletter */}
-      <section className="py-24 bg-background relative overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-3xl -z-10"></div>
-        <div className="container px-4">
-          <motion.div 
-            initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp}
-            className="max-w-3xl mx-auto text-center glass-panel p-8 md:p-16 rounded-3xl"
-          >
-            <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 text-primary">
-              <Mail className="h-8 w-8" />
-            </div>
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">Join our Newsletter</h2>
-            <p className="text-muted-foreground text-lg mb-8 max-w-xl mx-auto">
-              Subscribe to get special offers, free giveaways, and once-in-a-lifetime deals delivered straight to your inbox.
+      {/* 5. DATA-BACKED TESTIMONIALS */}
+      <section className="py-32 bg-[#FAFAFA]">
+        <div className="container px-6">
+          <div className="text-center mb-20">
+            <h2 className="text-4xl font-black tracking-tight mb-4">Don't take our word for it.</h2>
+            <p className="text-slate-500 text-xl font-medium max-w-2xl mx-auto">
+              Real metrics from real customers who upgraded their lifestyle.
             </p>
-            <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto" onSubmit={(e) => { e.preventDefault(); toast.success('Subscribed successfully!'); }}>
-              <input 
-                type="email" 
-                placeholder="Enter your email address" 
-                className="flex h-12 w-full rounded-full border border-input bg-background px-6 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                required
-              />
-              <Button type="submit" size="lg" className="rounded-full h-12 px-8">
-                Subscribe
-              </Button>
-            </form>
-            <p className="text-xs text-muted-foreground mt-4">We respect your privacy. Unsubscribe at any time.</p>
-          </motion.div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              { stat: "98%", metric: "Satisfaction Rate", name: "Sarah J.", text: "The build quality completely exceeded my expectations. Worth every penny." },
+              { stat: "2.5x", metric: "Longer Lifespan", name: "Michael C.", text: "Compared to my previous gear, these products are built to last a lifetime." },
+              { stat: "0", metric: "Returns Needed", name: "Emma R.", text: "Everything fit perfectly out of the box. The sizing guide is flawlessly accurate." }
+            ].map((review, i) => (
+              <motion.div 
+                key={i} 
+                initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.15, duration: 0.6 }}
+                className="bg-white p-10 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-md transition-shadow"
+              >
+                <div className="flex items-end gap-3 mb-6">
+                  <span className="text-5xl font-black text-slate-900 tracking-tighter">{review.stat}</span>
+                  <span className="text-sm font-bold text-slate-400 uppercase tracking-widest pb-1">{review.metric}</span>
+                </div>
+                <div className="flex gap-1 mb-6">
+                  {[1,2,3,4,5].map(star => <Star key={star} className="h-4 w-4 fill-amber-400 text-amber-400" />)}
+                </div>
+                <p className="text-lg text-slate-600 font-medium leading-relaxed mb-8">"{review.text}"</p>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-5 w-5 text-green-500" />
+                  <span className="font-bold text-slate-900">{review.name}</span>
+                  <span className="text-slate-400 text-sm ml-2">Verified Buyer</span>
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
+
     </div>
   );
 };

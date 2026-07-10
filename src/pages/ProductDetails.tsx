@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ProductAPI } from '@/api/services';
+import { ProductAPI, MediaAPI } from '@/api/services';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -21,7 +21,20 @@ export const ProductDetails = () => {
       try {
         if (id) {
           const response = await ProductAPI.getById(id);
-          setProduct(response.data.data);
+          const product = response.data.data;
+
+          if (product.image_url) {
+            try {
+              const mediaResponse = await MediaAPI.getDownloadUrl(product.image_url);
+
+              product.image_url = mediaResponse.data.url;
+            } catch (error) {
+              console.error("Failed to generate signed image URL", error);
+              product.image_url = "";
+            }
+          }
+
+          setProduct(product);
         }
       } catch (error) {
         toast.error('Failed to load product details');

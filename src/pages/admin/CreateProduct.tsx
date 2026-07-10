@@ -93,8 +93,7 @@ export const CreateProduct = () => {
         setUploadStatus('success');
         // Construct a mock public URL or use the key depending on how the frontend displays it
         // Our mock uses URL directly in ProductCard, so let's mock a public URL here based on the key
-        const mediaResponse = await MediaAPI.getDownloadUrl(key);
-        finalImageUrl = mediaResponse.data.url;
+        finalImageUrl = key;
         console.log('[CreateProduct] Final image URL set to:', finalImageUrl);
       } else {
         console.log('[CreateProduct] No file selected, skipping upload step.');
