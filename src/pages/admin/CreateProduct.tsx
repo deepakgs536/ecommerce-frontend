@@ -13,7 +13,7 @@ import { Package, ArrowLeft, Loader2, UploadCloud, File as FileIcon, CheckCircle
 
 const productSchema = z.object({
   name: z.string().min(2, 'Name is required (min 2 chars)'),
-  price: z.preprocess((a) => parseFloat(z.string().parse(a)), z.number().positive('Price must be positive')),
+  price: z.coerce.number().positive("Price must be a positive number").max(100000, "Price seems too high").optional(),
   description: z.string().optional(),
   sku: z.string().optional(),
   category: z.string().optional(),
@@ -33,7 +33,7 @@ export const CreateProduct = () => {
     resolver: zodResolver(productSchema),
     defaultValues: {
       name: '',
-      price: undefined,
+      price: 0,
       description: '',
       sku: '',
       category: '',

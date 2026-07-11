@@ -1,36 +1,60 @@
 import { CognitoIdentityProviderClient, AdminAddUserToGroupCommand } from "@aws-sdk/client-cognito-identity-provider";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 
-const client = new CognitoIdentityProviderClient({});
+const cognitoClient = new CognitoIdentityProviderClient({});
+
+// Initialize DynamoDB Client
+const ddbClient = new DynamoDBClient({});
+const docClient = DynamoDBDocumentClient.from(ddbClient);
+
+const USERS_TABLE = process.env.USERS_TABLE || 'UsersTable';
 
 export const handler = async (event) => {
   console.log("Post Confirmation Triggered:", JSON.stringify(event));
 
-  // We only want to assign the group if they just signed up / confirmed
   if (event.triggerSource === "PostConfirmation_ConfirmSignUp") {
-    
-    // We read the 'custom:role' passed from the frontend during signUp.
-    // If it's missing, we default to 'customer'.
     const requestedRole = event.request.userAttributes['custom:role'] || "customer";
-    
-    // Ensure the groups 'admin' and 'customer' are already created in your User Pool!
     const groupName = requestedRole === "admin" ? "admin" : "customer";
+    const email = event.request.userAttributes.email || "";
+    const name = event.request.userAttributes.name || "User";
+    const userId = event.request.userAttributes.sub; // Cognito User ID
     
-    const params = {
+    // 1. Add User to Cognito Group
+    const cognitoParams = {
       GroupName: groupName,
       UserPoolId: event.userPoolId,
       Username: event.userName,
     };
     
     try {
-      const command = new AdminAddUserToGroupCommand(params);
-      await client.send(command);
+      await cognitoClient.send(new AdminAddUserToGroupCommand(cognitoParams));
       console.log(`Successfully added user ${event.userName} to group ${groupName}`);
     } catch (err) {
       console.error("Error adding user to group:", err);
-      // Don't throw the error, otherwise the user login might fail depending on trigger settings.
+    }
+
+    // 2. Add User to DynamoDB UsersTable
+    try {
+      await docClient.send(new PutCommand({
+        TableName: USERS_TABLE,
+        Item: {
+          userId: userId,
+          email: email,
+          name: name,
+          role: groupName,
+          profile_image_url: "", // Initialized empty for profile upload later
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+      }));
+      console.log(`Successfully created user record in DynamoDB for ${userId}`);
+    } catch (err) {
+      console.error("Error creating user in DynamoDB:", err);
     }
   }
 
-  // MUST return the event back to Cognito
   return event;
 };
+
+

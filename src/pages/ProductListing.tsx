@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import { ProductAPI, MediaAPI } from '@/api/services';
+import { ProductAPI, MediaAPI, CartAPI } from '@/api/services';
 import { ProductCard } from '@/components/ui/ProductCard';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { addToCart } from '@/store/slices/cartSlice';
 import { Search } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
@@ -58,14 +58,32 @@ export const ProductListing = () => {
     fetchProducts();
   }, []);
 
+  const { user } = useSelector((state: any) => state.auth);
+
   const filteredProducts = products.filter(p => {
     const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) || p.category.toLowerCase().includes(search.toLowerCase());
     const matchesCategory = selectedCategory === 'All Categories' || p.category.toLowerCase() === selectedCategory.toLowerCase();
     return matchesSearch && matchesCategory;
   });
 
-  const handleAddToCart = (product: any) => {
+  const handleAddToCart = async (product: any) => {
     dispatch(addToCart(product));
+    
+    // Sync with backend if logged in
+    if (user?.id) {
+      try {
+        await CartAPI.addItem(user.id, {
+          productId: product.productId,
+          name: product.name,
+          price: Number(product.price),
+          quantity: 1,
+          image_url: product.image_url
+        });
+      } catch (error: any) {
+        console.error('Failed to sync cart with backend:', error?.response?.data || error);
+      }
+    }
+    
     toast.success(`${product.name} added to cart`);
   };
 

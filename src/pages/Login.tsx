@@ -76,7 +76,7 @@ export const Login = () => {
         
         // Extract role from Cognito Groups (e.g., ['admin'])
         const groups = payload['cognito:groups'] as string[] | undefined;
-        const userRole = groups?.includes('admin') ? 'admin' : 'customer';
+        const userRole = groups?.includes('admin') ? ('admin' as const) : ('customer' as const);
         const userName = (payload.name as string) || 'User';
         
         const user = {

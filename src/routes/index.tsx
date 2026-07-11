@@ -60,12 +60,13 @@ const ProtectedRoute = ({ children, role }: { children: React.ReactNode, role?: 
 };
 
 // Pages (Placeholders for remaining)
-const NotFound = () => <div>404 Not Found</div>;
+const NotFound = lazy(() => import('@/pages/NotFound').then(module => ({ default: module.NotFound })));
 const Profile = lazy(() => import('@/pages/Profile').then(module => ({ default: module.Profile })));
 
 // Admin Pages Placeholders for remaining
+// Admin Pages Placeholders for remaining
 const AdminAnalytics = () => <div>Admin Analytics</div>;
-const AdminSettings = () => <div>Admin Settings</div>;
+const AdminSettings = lazy(() => import('@/pages/admin/Settings').then(module => ({ default: module.AdminSettings })));
 
 
 const router = createBrowserRouter([

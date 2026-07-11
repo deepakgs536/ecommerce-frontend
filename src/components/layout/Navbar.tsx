@@ -25,6 +25,7 @@ export const Navbar = () => {
           <>
             <nav className="flex items-center space-x-8 text-sm font-semibold h-full relative">
               <Link to="/products" className="transition-colors hover:text-primary text-muted-foreground">All Products</Link>
+              <Link to="/orders" className="transition-colors hover:text-primary text-muted-foreground">Orders</Link>
               
               {/* Category Dropdown */}
               <div className="relative group z-50 h-full flex items-center">
@@ -49,8 +50,6 @@ export const Navbar = () => {
                   </div>
                 </div>
               </div>
-
-              <Link to="/admin" className="transition-colors hover:text-primary text-muted-foreground">Admin Dashboard</Link>
             </nav>
             <div className="flex items-center space-x-4">
               <Link to="/cart">

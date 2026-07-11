@@ -46,8 +46,9 @@ export const Checkout = () => {
       dispatch(clearCart());
       toast.success('Order placed successfully!');
       navigate(`/payments/pending?orderId=${orderId}`);
-    } catch (error) {
-      toast.error('Failed to place order');
+    } catch (error: any) {
+      console.error('Checkout failed:', error?.response?.data || error);
+      toast.error(error?.response?.data?.error || 'Failed to place order');
     } finally {
       setIsSubmitting(false);
     }

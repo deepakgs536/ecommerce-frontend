@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ProductAPI, MediaAPI } from '@/api/services';
+import { ProductAPI, MediaAPI, CartAPI } from '@/api/services';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ShoppingCart, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { addToCart } from '@/store/slices/cartSlice';
 
 export const ProductDetails = () => {
@@ -15,6 +15,7 @@ export const ProductDetails = () => {
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const dispatch = useDispatch();
+  const { user } = useSelector((state: any) => state.auth);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -45,8 +46,24 @@ export const ProductDetails = () => {
     fetchProduct();
   }, [id]);
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     dispatch(addToCart(product));
+    
+    // Sync with backend if logged in
+    if (user?.id) {
+      try {
+        await CartAPI.addItem(user.id, {
+          productId: product.productId,
+          name: product.name,
+          price: Number(product.price),
+          quantity: 1,
+          image_url: product.image_url
+        });
+      } catch (error: any) {
+        console.error('Failed to sync cart with backend:', error?.response?.data || error);
+      }
+    }
+    
     toast.success(`${product.name} added to cart`);
   };
 

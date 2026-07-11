@@ -83,6 +83,10 @@ export const OrderAPI = {
   updateOrderStatus: async (id: string, status: string) => {
     if (useMock) return mockResponse({ success: true, message: 'Status updated' });
     return axiosClient.put(`/orders/${id}/status`, { status });
+  },
+  updateOrder: async (id: string, data: any) => {
+    if (useMock) return mockResponse({ success: true, message: 'Order updated', data });
+    return axiosClient.put(`/orders/${id}`, data);
   }
 };
 
@@ -114,6 +118,18 @@ export const InventoryAPI = {
   update: async (productId: string, data: any) => {
     if (useMock) return mockResponse({ success: true, data });
     return axiosClient.put(`/inventory/${productId}`, data);
+  }
+};
+
+// --- USER SERVICE ---
+export const UserAPI = {
+  getProfile: async (userId: string) => {
+    if (useMock) return mockResponse({ success: true, data: { userId, name: 'Admin User', email: 'admin@example.com', role: 'admin', profile_image_url: '' } });
+    return axiosClient.get(`/users/${userId}`);
+  },
+  updateProfile: async (userId: string, data: any) => {
+    if (useMock) return mockResponse({ success: true, message: 'Profile updated successfully', data });
+    return axiosClient.put(`/users/${userId}`, data);
   }
 };
 

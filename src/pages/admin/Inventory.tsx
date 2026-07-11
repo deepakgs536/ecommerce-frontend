@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ProductAPI, InventoryAPI } from '@/api/services';
+import { ProductAPI, InventoryAPI, MediaAPI } from '@/api/services';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,32 +21,69 @@ export const AdminInventory = () => {
   }, []);
 
   const fetchInventory = async () => {
-    setLoading(true);
-    try {
-      const [productsRes, inventoryRes] = await Promise.all([
-        ProductAPI.getAll(),
-        InventoryAPI.getAll()
-      ]);
+  setLoading(true);
 
-      const products = productsRes.data.data;
-      const invData = inventoryRes.data.data;
+  try {
+    const [productsRes, inventoryRes] = await Promise.all([
+      ProductAPI.getAll(),
+      InventoryAPI.getAll()
+    ]);
 
-      const merged = products.map((product: any) => {
-        const inv = invData.find((i: any) => i.productId === product.productId) || {
+    const products = await Promise.all(
+      productsRes.data.data.map(async (product: any) => {
+        if (!product.image_url) {
+          return product;
+        }
+
+        try {
+          const mediaResponse = await MediaAPI.getDownloadUrl(
+            product.image_url
+          );
+
+          return {
+            ...product,
+            image_url: mediaResponse.data.url
+          };
+        } catch (err) {
+          console.error(
+            `Failed to generate signed URL for ${product.productId}`,
+            err
+          );
+
+          return {
+            ...product,
+            image_url: ""
+          };
+        }
+      })
+    );
+
+    const inventory = inventoryRes.data.data;
+
+    const merged = products.map((product: any) => {
+      const inv =
+        inventory.find(
+          (item: any) => item.productId === product.productId
+        ) || {
           available_quantity: 0,
           reserved_quantity: 0,
           updated_at: new Date().toISOString()
         };
-        return { ...product, ...inv };
-      });
 
-      setInventoryItems(merged);
-    } catch (error) {
-      toast.error('Failed to load inventory data');
-    } finally {
-      setLoading(false);
-    }
-  };
+      return {
+        ...product,
+        ...inv
+      };
+    });
+
+    setInventoryItems(merged);
+  } catch (error) {
+    console.error(error);
+    toast.error("Failed to load inventory data");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleEditClick = (item: any) => {
     setEditingItem(item);
