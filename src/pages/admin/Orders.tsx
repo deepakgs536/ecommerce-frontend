@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { PackageCheck, Truck, XCircle, X } from 'lucide-react';
+import { PackageCheck, Truck, X } from 'lucide-react';
 
 export const AdminOrders = () => {
   const [orders, setOrders] = useState<any[]>([]);
@@ -59,7 +59,7 @@ export const AdminOrders = () => {
     }
   };
 
-  const pendingCount = orders.filter(o => o.status === 'PENDING' || o.status === 'PAID').length;
+
 
   return (
     <div className="space-y-6">

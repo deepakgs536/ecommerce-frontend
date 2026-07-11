@@ -6,7 +6,7 @@ import { UserAPI, MediaAPI } from '@/api/services';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+
 import { toast } from 'sonner';
 import { Camera, Save, Loader2, User as UserIcon } from 'lucide-react';
 
@@ -201,7 +201,7 @@ export const AdminSettings = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
+              <label htmlFor="name" className="text-sm font-medium leading-none">Full Name</label>
               <Input 
                 id="name"
                 value={profileData.name}
@@ -211,7 +211,7 @@ export const AdminSettings = () => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
+              <label htmlFor="email" className="text-sm font-medium leading-none">Email Address</label>
               <Input 
                 id="email"
                 value={profileData.email}
@@ -222,7 +222,7 @@ export const AdminSettings = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="role">Account Role</Label>
+              <label htmlFor="role" className="text-sm font-medium leading-none">Account Role</label>
               <div className="h-11 px-4 py-2 bg-slate-50 border border-slate-200 rounded-md text-slate-700 capitalize font-medium flex items-center">
                 {profileData.role}
               </div>

@@ -30,7 +30,7 @@ export const CreateProduct = () => {
   const navigate = useNavigate();
   
   const { register, handleSubmit, formState: { errors } } = useForm<ProductFormValues>({
-    resolver: zodResolver(productSchema),
+    resolver: zodResolver(productSchema) as any,
     defaultValues: {
       name: '',
       price: 0,

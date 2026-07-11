@@ -3,7 +3,7 @@ import { MediaAPI } from '@/api/services';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { UploadCloud, File, CheckCircle2, XCircle, Copy } from 'lucide-react';
+import { UploadCloud, File, CheckCircle2, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 
 export const MediaUpload = () => {

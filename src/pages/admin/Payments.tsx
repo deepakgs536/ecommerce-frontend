@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
-import { RefreshCcw, CreditCard, DollarSign, Activity, Eye, X } from 'lucide-react';
+import { RefreshCcw, CreditCard, DollarSign, Activity, X } from 'lucide-react';
 import { format } from 'date-fns';
 
 export const AdminPayments = () => {
