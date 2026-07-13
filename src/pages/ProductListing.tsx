@@ -26,12 +26,25 @@ export const ProductListing = () => {
     CATEGORIES.find(c => c.toLowerCase() === initialCategory.toLowerCase()) || 'All Categories'
   );
 
+  useEffect(() => {
+    const categoryParam = searchParams.get('category');
+    if (categoryParam) {
+      const match = CATEGORIES.find(c => c.toLowerCase() === categoryParam.toLowerCase());
+      if (match && match !== selectedCategory) {
+        setSelectedCategory(match);
+      }
+    } else if (selectedCategory !== 'All Categories') {
+      setSelectedCategory('All Categories');
+    }
+  }, [searchParams]);
+
   const dispatch = useDispatch();
 
   useEffect(() => {
     const fetchProducts = async () => {
+      setLoading(true);
       try {
-        const response = await ProductAPI.getAll();
+        const response = await ProductAPI.getAll(selectedCategory);
         const productsWithSignedUrls = await Promise.all(
           response.data.data.map(async (product: any) => {
             if (!product.image_url) {
@@ -56,14 +69,13 @@ export const ProductListing = () => {
       }
     };
     fetchProducts();
-  }, []);
+  }, [selectedCategory]);
 
   const { user } = useSelector((state: any) => state.auth);
 
   const filteredProducts = products.filter(p => {
     const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) || p.category.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory = selectedCategory === 'All Categories' || p.category.toLowerCase() === selectedCategory.toLowerCase();
-    return matchesSearch && matchesCategory;
+    return matchesSearch;
   });
 
   const handleAddToCart = async (product: any) => {

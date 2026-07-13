@@ -12,9 +12,10 @@ const mockResponse = <T>(data: T, delay = 500): Promise<{ data: T }> => {
 
 // --- PRODUCT SERVICE ---
 export const ProductAPI = {
-  getAll: async () => {
+  getAll: async (category?: string) => {
     if (useMock) return mockResponse({ success: true, data: mockProducts });
-    return axiosClient.get('/products');
+    const params = category && category !== 'All Categories' ? { category } : undefined;
+    return axiosClient.get('/products', { params });
   },
   getById: async (id: string) => {
     if (useMock) return mockResponse({ success: true, data: mockProducts.find(p => p.productId === id) });
