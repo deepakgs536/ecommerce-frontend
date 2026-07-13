@@ -7,7 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { useDispatch, useSelector } from 'react-redux';
 import { addToCart } from '@/store/slices/cartSlice';
-import { Search } from 'lucide-react';
+import { Search, ChevronDown, Check } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 
 const CATEGORIES = ['All Categories', 'Electronics', 'Apparel', 'Home & Living', 'Accessories'];
@@ -38,6 +38,8 @@ export const ProductListing = () => {
     }
   }, [searchParams]);
 
+  const [sortBy, setSortBy] = useState('price_asc');
+  const [isSortOpen, setIsSortOpen] = useState(false);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -73,10 +75,20 @@ export const ProductListing = () => {
 
   const { user } = useSelector((state: any) => state.auth);
 
-  const filteredProducts = products.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) || p.category.toLowerCase().includes(search.toLowerCase());
-    return matchesSearch;
-  });
+  const filteredProducts = [...products]
+    .filter(p => {
+      const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) || (p.category && p.category.toLowerCase().includes(search.toLowerCase()));
+      return matchesSearch;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'price_asc': return (Number(a.price) || 0) - (Number(b.price) || 0);
+        case 'price_desc': return (Number(b.price) || 0) - (Number(a.price) || 0);
+        case 'category_asc': return (a.category || '').localeCompare(b.category || '');
+        case 'category_desc': return (b.category || '').localeCompare(a.category || '');
+        default: return 0;
+      }
+    });
 
   const handleAddToCart = async (product: any) => {
     dispatch(addToCart(product));
@@ -117,14 +129,59 @@ export const ProductListing = () => {
           <h1 className="text-3xl font-black tracking-tight">{selectedCategory}</h1>
         </div>
 
-        <div className="w-full md:w-96 relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-          <Input 
-            placeholder="Search for essentials..." 
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="h-12 pl-12 rounded-full border-slate-200 bg-slate-50 focus-visible:ring-slate-200 focus-visible:bg-white transition-colors"
-          />
+        <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
+          
+          {/* Custom Sort Dropdown */}
+          <div 
+            className="w-full sm:w-auto relative" 
+            onClick={() => setIsSortOpen(!isSortOpen)} 
+            onBlur={() => setTimeout(() => setIsSortOpen(false), 200)} 
+            tabIndex={0}
+          >
+            <div className={`h-12 px-5 flex items-center justify-between gap-3 rounded-full border ${isSortOpen ? 'border-primary ring-2 ring-primary/20 bg-white' : 'border-slate-200 bg-slate-50 hover:bg-slate-100'} transition-all cursor-pointer text-sm font-semibold text-slate-700 w-full sm:w-56 outline-none`}>
+              <span className="truncate">
+                {sortBy === 'price_asc' && 'Price: Low to High'}
+                {sortBy === 'price_desc' && 'Price: High to Low'}
+                {sortBy === 'category_asc' && 'Category: A to Z'}
+                {sortBy === 'category_desc' && 'Category: Z to A'}
+              </span>
+              <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform duration-300 ${isSortOpen ? 'rotate-180' : ''}`} />
+            </div>
+            
+            {isSortOpen && (
+              <div className="absolute top-14 left-0 w-full sm:min-w-[224px] bg-white/95 backdrop-blur-xl rounded-[1.5rem] shadow-xl border border-slate-100 p-2 z-50 animate-in fade-in zoom-in-95 duration-200 origin-top">
+                {[
+                  { value: 'price_asc', label: 'Price: Low to High' },
+                  { value: 'price_desc', label: 'Price: High to Low' },
+                  { value: 'category_asc', label: 'Category: A to Z' },
+                  { value: 'category_desc', label: 'Category: Z to A' },
+                ].map(option => (
+                  <div 
+                    key={option.value}
+                    className={`flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-semibold cursor-pointer transition-colors ${sortBy === option.value ? 'bg-primary/10 text-primary' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSortBy(option.value);
+                      setIsSortOpen(false);
+                    }}
+                  >
+                    {option.label}
+                    {sortBy === option.value && <Check className="h-4 w-4" />}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="w-full sm:w-64 md:w-80 relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+            <Input 
+              placeholder="Search for essentials..." 
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="h-12 pl-12 rounded-full border-slate-200 bg-slate-50 focus-visible:ring-slate-200 focus-visible:bg-white transition-colors"
+            />
+          </div>
         </div>
       </div>
 
