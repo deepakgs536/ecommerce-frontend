@@ -252,7 +252,7 @@ export const OrderDetails = () => {
               ) : (
                 <div className="relative">
                   {/* Progress Line */}
-                  <div className="absolute left-0 md:left-1/2 top-4 bottom-4 w-px bg-border md:w-full md:h-px md:top-1/2 md:-left-4 md:right-4 z-0">
+                  <div className="absolute left-0 md:left-0 top-4 bottom-4 w-px bg-border md:w-full md:h-px md:top-1/2 md:-left-4 md:right-4 z-0">
                      {/* Colored Progress Line */}
                      <div 
                         className="bg-primary absolute left-0 top-0 transition-all duration-1000 ease-in-out"
