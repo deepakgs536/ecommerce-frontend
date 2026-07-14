@@ -157,7 +157,7 @@ export const AdminOrders = () => {
                   <TableRow>
                     <TableHead>Order / Items</TableHead>
                     <TableHead>Date</TableHead>
-                    <TableHead>Customer / Shipping</TableHead>
+                    <TableHead>Customer</TableHead>
                     <TableHead>Total</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -185,9 +185,6 @@ export const AdminOrders = () => {
                       <TableCell>{order.created_at ? format(new Date(order.created_at), 'MMM dd, yyyy') : 'N/A'}</TableCell>
                       <TableCell>
                         <p className="font-medium text-sm text-slate-900">{userNames[order.userId] || 'Unknown User'}</p>
-                        <p className="text-xs text-muted-foreground truncate max-w-[200px]">
-                          {order.shipping_address ? `${order.shipping_address.city}, ${order.shipping_address.state}` : 'N/A'}
-                        </p>
                       </TableCell>
                       <TableCell className="font-medium">${(order.total_amount || 0).toFixed(2)}</TableCell>
                       <TableCell>{getStatusBadge(order.status)}</TableCell>
