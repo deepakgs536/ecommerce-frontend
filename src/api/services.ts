@@ -100,6 +100,14 @@ export const PaymentAPI = {
   process: async (data: { orderId: string; amount: number; method: string }) => {
     if (useMock) return mockResponse({ success: true, message: 'Payment successful', transactionId: `txn_${Date.now()}` });
     return axiosClient.post('/payments/process', data);
+  },
+  getByOrderId: async (orderId: string) => {
+    if (useMock) return mockResponse({ success: true, data: { paymentId: `pay_${Date.now()}`, orderId, status: 'PENDING' } });
+    return axiosClient.get(`/payments/order/${orderId}`);
+  },
+  update: async (paymentId: string, data: any) => {
+    if (useMock) return mockResponse({ success: true, message: 'Payment updated', data });
+    return axiosClient.put(`/payments/${paymentId}`, data);
   }
 };
 

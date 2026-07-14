@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { OrderAPI, ProductAPI, MediaAPI } from '@/api/services';
+import { OrderAPI, ProductAPI, MediaAPI, PaymentAPI } from '@/api/services';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -33,6 +33,7 @@ export const OrderDetails = () => {
         if (id) {
           const response = await OrderAPI.getById(id);
           const orderData = response.data.data;
+          console.log("[DEBUG] Fetched Order Data from API:", orderData);
           setOrder(orderData);
           if (orderData.shipping_address) {
             setEditForm({
@@ -460,12 +461,28 @@ export const OrderDetails = () => {
                        className="px-10 h-12 rounded-xl text-base font-bold shadow-md shadow-primary/20 hover:-translate-y-1 transition-all duration-300 w-full md:w-auto"
                        disabled={isUpdating}
                        onClick={async () => {
+                         console.log("[DEBUG] Attempting to complete payment. Current order object:", order);
                          setIsUpdating(true);
                          try {
+                           // Since the GET request to the GSI is failing, we can deterministically
+                           // reconstruct the paymentId based on the pattern in your DynamoDB JSON!
+                           // orderId: "2aa77d94-1b03-4473-9b9c-d61658bc559e"
+                           // paymentId: "pay_auto_2aa77d941b0344739b9cd61658bc559e"
+                           const paymentId = `pay_auto_${order.orderId.replace(/-/g, '')}`;
+                           console.log("[DEBUG] Reconstructed paymentId:", paymentId);
+
+                           // 1. Update Payment Service directly using the reconstructed ID
+                           await PaymentAPI.update(paymentId, {
+                             status: 'PAID',
+                           });
+
+                           // 2. Then update the Order Service
                            await OrderAPI.updateOrderStatus(order.orderId, 'PAID');
+                           
                            setOrder({ ...order, status: 'PAID' });
                            toast.success('Payment completed successfully!');
                          } catch (error) {
+                           console.error("Payment Error:", error);
                            toast.error('Payment failed');
                          } finally {
                            setIsUpdating(false);

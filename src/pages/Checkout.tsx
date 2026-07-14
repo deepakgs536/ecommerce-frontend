@@ -27,8 +27,9 @@ export const Checkout = () => {
   });
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [orderCompleted, setOrderCompleted] = useState(false);
 
-  if (items.length === 0) {
+  if (items.length === 0 && !orderCompleted) {
     return <Navigate to="/cart" replace />;
   }
 
@@ -49,6 +50,7 @@ export const Checkout = () => {
         delivery_instructions: "",
       });
 
+      setOrderCompleted(true);
       dispatch(clearCart());
       toast.success('Order placed successfully!');
       navigate(`/orders/${orderId}`);
