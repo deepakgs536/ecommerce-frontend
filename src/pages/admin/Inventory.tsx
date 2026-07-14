@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
-import { RefreshCcw, AlertCircle, Edit, TrendingDown, Package, ShieldCheck } from 'lucide-react';
+import { RefreshCcw, AlertCircle, Edit, TrendingDown, Package, ShieldCheck, ChevronDown, ChevronUp, PlusCircle } from 'lucide-react';
 import { format } from 'date-fns';
 
 export const AdminInventory = () => {
@@ -15,6 +15,7 @@ export const AdminInventory = () => {
   const [editingItem, setEditingItem] = useState<any>(null);
   const [editForm, setEditForm] = useState({ available_quantity: 0, reserved_quantity: 0 });
   const [actionLoading, setActionLoading] = useState(false);
+  const [showLowStock, setShowLowStock] = useState(false);
 
   useEffect(() => {
     fetchInventory();
@@ -112,6 +113,24 @@ export const AdminInventory = () => {
     }
   };
 
+  const handleRestock = async (item: any) => {
+    setActionLoading(true);
+    try {
+      const restockData = { available_quantity: 50, reserved_quantity: item.reserved_quantity };
+      await InventoryAPI.update(item.productId, restockData);
+      setInventoryItems(inventoryItems.map(i => 
+        i.productId === item.productId 
+          ? { ...i, ...restockData, updated_at: new Date().toISOString() } 
+          : i
+      ));
+      toast.success(`${item.name} restocked to 50 successfully!`);
+    } catch (error) {
+      toast.error(`Failed to restock ${item.name}`);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const outOfStockCount = inventoryItems.filter(p => p.available_quantity === 0).length;
   const totalAvailable = inventoryItems.reduce((acc, curr) => acc + (curr.available_quantity || 0), 0);
   const totalReserved = inventoryItems.reduce((acc, curr) => acc + (curr.reserved_quantity || 0), 0);
@@ -186,6 +205,59 @@ export const AdminInventory = () => {
             </p>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Low Stock & Depleted Collapsible List */}
+      <div className="bg-amber-500/5 border border-amber-500/20 rounded-2xl overflow-hidden shadow-sm">
+        <button
+          onClick={() => setShowLowStock(!showLowStock)}
+          className="w-full flex items-center justify-between p-5 bg-amber-500/10 hover:bg-amber-500/15 transition-colors focus:outline-none"
+        >
+          <div className="flex items-center gap-3">
+            <AlertCircle className="text-amber-600 dark:text-amber-500 w-5 h-5" />
+            <span className="font-bold text-amber-800 dark:text-amber-400">
+              Low Stock & Depleted Items ({inventoryItems.filter(i => i.available_quantity < 10).length})
+            </span>
+          </div>
+          {showLowStock ? (
+            <ChevronUp className="text-amber-600 dark:text-amber-500 w-5 h-5" />
+          ) : (
+            <ChevronDown className="text-amber-600 dark:text-amber-500 w-5 h-5" />
+          )}
+        </button>
+        {showLowStock && (
+          <div className="p-5 border-t border-amber-500/10 space-y-3 bg-amber-500/5 animate-in slide-in-from-top-2 duration-300">
+            {inventoryItems.filter(i => i.available_quantity < 10).length === 0 ? (
+              <p className="text-sm text-amber-700/70 dark:text-amber-400/70 text-center py-4 font-medium">All items have sufficient stock (10+).</p>
+            ) : (
+              inventoryItems.filter(i => i.available_quantity < 10).map(item => (
+                <div key={item.productId} className="flex items-center justify-between bg-background/80 backdrop-blur-md p-4 rounded-xl border border-amber-500/10 shadow-sm transition-all hover:shadow-md">
+                  <div className="flex items-center gap-4">
+                    <img src={item.image_url || 'https://images.unsplash.com/photo-1560393464-5c69a73c5770?w=100&q=80'} alt={item.name} className="w-12 h-12 rounded-lg object-cover shadow-sm ring-1 ring-border/50" />
+                    <div>
+                      <p className="font-bold text-sm sm:text-base">{item.name}</p>
+                      <p className="text-xs text-muted-foreground font-mono mt-0.5">{item.sku || 'N/A'}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 sm:gap-6">
+                    <div className="text-right">
+                      <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider font-bold">Qty</p>
+                      <Badge variant={item.available_quantity === 0 ? 'destructive' : 'secondary'} className={`text-sm px-2.5 py-0.5 ${item.available_quantity > 0 ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-400' : ''}`}>
+                        {item.available_quantity}
+                      </Badge>
+                    </div>
+                    <Button variant="outline" size="sm" onClick={() => handleRestock(item)} disabled={actionLoading} className="hidden sm:flex border-green-200 text-green-700 hover:bg-green-50 dark:border-green-900 dark:text-green-400 dark:hover:bg-green-900/30 shadow-sm">
+                      <PlusCircle className="h-4 w-4 mr-2" /> Restock
+                    </Button>
+                    <Button variant="outline" size="icon" onClick={() => handleRestock(item)} disabled={actionLoading} className="sm:hidden border-green-200 text-green-700 hover:bg-green-50 dark:border-green-900 dark:text-green-400 dark:hover:bg-green-900/30">
+                      <PlusCircle className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
       </div>
 
       <Card className="premium-shadow border-0 bg-background/60 backdrop-blur-xl">

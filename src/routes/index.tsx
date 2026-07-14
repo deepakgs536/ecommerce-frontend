@@ -117,7 +117,6 @@ const router = createBrowserRouter([
         path: 'products/create',
         element: <AdminCreateProduct />,
       },
-      { path: 'media', element: <AdminMedia /> },
       { path: 'inventory', element: <AdminInventory /> },
       { path: 'orders', element: <AdminOrders /> },
       { path: 'payments', element: <AdminPayments /> },
