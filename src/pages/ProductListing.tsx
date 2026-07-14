@@ -40,6 +40,7 @@ export const ProductListing = () => {
 
   const [sortBy, setSortBy] = useState('price_asc');
   const [isSortOpen, setIsSortOpen] = useState(false);
+  const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -131,6 +132,38 @@ export const ProductListing = () => {
 
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
           
+          {/* Category Dropdown */}
+          <div 
+            className="w-full sm:w-auto relative z-50" 
+            onClick={() => setIsCategoryOpen(!isCategoryOpen)} 
+            onBlur={() => setTimeout(() => setIsCategoryOpen(false), 200)} 
+            tabIndex={0}
+          >
+            <div className={`h-12 px-5 flex items-center justify-between gap-3 rounded-full border ${isCategoryOpen ? 'border-primary ring-2 ring-primary/20 bg-white' : 'border-slate-200 bg-slate-50 hover:bg-slate-100'} transition-all cursor-pointer text-sm font-semibold text-slate-700 w-full sm:w-56 outline-none`}>
+              <span className="truncate">{selectedCategory}</span>
+              <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform duration-300 ${isCategoryOpen ? 'rotate-180' : ''}`} />
+            </div>
+            
+            {isCategoryOpen && (
+              <div className="absolute top-14 left-0 w-full sm:min-w-[224px] bg-white/95 backdrop-blur-xl rounded-[1.5rem] shadow-xl border border-slate-100 p-2 z-50 animate-in fade-in zoom-in-95 duration-200 origin-top">
+                {CATEGORIES.map(option => (
+                  <div 
+                    key={option}
+                    className={`flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-semibold cursor-pointer transition-colors ${selectedCategory === option ? 'bg-primary/10 text-primary' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCategorySelect(option);
+                      setIsCategoryOpen(false);
+                    }}
+                  >
+                    {option}
+                    {selectedCategory === option && <Check className="h-4 w-4" />}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Custom Sort Dropdown */}
           <div 
             className="w-full sm:w-auto relative" 

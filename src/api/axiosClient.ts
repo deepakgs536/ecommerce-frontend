@@ -34,26 +34,32 @@ axiosClient.interceptors.response.use(
       try {
         return await axiosClient(originalRequest);
       } catch (retryError) {
-        toast.error('Network Error: Please check your connection.');
+        const suppressError = (originalRequest as any).suppressError === true;
+        if (!suppressError) {
+          toast.error('Network Error: Please check your connection.');
+        }
         return Promise.reject(retryError);
       }
     }
 
     if (error.response) {
       const { status, data } = error.response;
-      const message = data?.message || 'An error occurred';
+      const message = data?.error || data?.message || 'An error occurred';
+      const suppressError = (originalRequest as any).suppressError === true;
 
-      if (status === 401) {
-        toast.error('Session expired. Please login again.');
-        localStorage.removeItem('token');
-        // In a real app, redirect to login or dispatch logout action
-        window.location.href = '/login';
-      } else if (status === 403) {
-        toast.error('You do not have permission to perform this action.');
-      } else if (status >= 500) {
-        toast.error('Server error. Please try again later.');
-      } else {
-        toast.error(message);
+      if (!suppressError) {
+        if (status === 401) {
+          toast.error('Session expired. Please login again.');
+          localStorage.removeItem('token');
+          // In a real app, redirect to login or dispatch logout action
+          window.location.href = '/login';
+        } else if (status === 403) {
+          toast.error('You do not have permission to perform this action.');
+        } else if (status >= 500) {
+          toast.error('Server error. Please try again later.');
+        } else {
+          toast.error(message);
+        }
       }
     }
 

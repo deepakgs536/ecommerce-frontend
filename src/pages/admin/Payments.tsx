@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { PaymentAPI } from '@/api/services';
+import { PaymentAPI, UserAPI } from '@/api/services';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ import { format } from 'date-fns';
 
 export const AdminPayments = () => {
   const [payments, setPayments] = useState<any[]>([]);
+  const [userNames, setUserNames] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [selectedPayment, setSelectedPayment] = useState<any>(null);
 
@@ -26,6 +27,19 @@ export const AdminPayments = () => {
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
       setPayments(sortedPayments);
+      
+      const allUserIds = [...new Set(sortedPayments.map((p: any) => p.userId).filter(Boolean))];
+      const usersMap: Record<string, string> = {};
+      await Promise.all(allUserIds.map(async (uId) => {
+        try {
+          const uRes = await UserAPI.getProfile(uId as string, true);
+          if (uRes.data?.data?.name) {
+            usersMap[uId as string] = uRes.data.data.name;
+          }
+        } catch (e) {}
+      }));
+      setUserNames(usersMap);
+      
     } catch (error) {
       toast.error('Failed to load payments data');
     } finally {
@@ -156,7 +170,10 @@ export const AdminPayments = () => {
                         <p className="font-mono text-xs font-semibold">{payment.paymentId}</p>
                         <p className="font-mono text-[10px] text-muted-foreground mt-0.5">{payment.transaction_id || 'N/A'}</p>
                       </TableCell>
-                      <TableCell className="text-sm">{payment.userId}</TableCell>
+                      <TableCell className="text-sm font-medium">
+                        {userNames[payment.userId] || 'Unknown User'}
+                        <p className="font-mono text-[10px] text-muted-foreground mt-0.5">{payment.userId}</p>
+                      </TableCell>
                       <TableCell className="font-mono text-xs text-muted-foreground">{payment.orderId.substring(0, 8)}...</TableCell>
                       <TableCell>
                         <Badge variant="outline" className="bg-background/50 font-medium">
@@ -223,8 +240,9 @@ export const AdminPayments = () => {
                   <p className="font-mono text-xs break-all">{selectedPayment.transaction_id || 'N/A'}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground mb-1">Customer / User ID</p>
-                  <p className="font-medium">{selectedPayment.userId}</p>
+                  <p className="text-muted-foreground mb-1">Customer</p>
+                  <p className="font-medium">{userNames[selectedPayment.userId] || 'Unknown User'}</p>
+                  <p className="font-mono text-xs text-muted-foreground mt-0.5">ID: {selectedPayment.userId}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground mb-1">Related Order ID</p>

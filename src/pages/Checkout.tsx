@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from '@/store';
 import { clearCart } from '@/store/slices/cartSlice';
-import { CartAPI } from '@/api/services';
+import { CartAPI, OrderAPI } from '@/api/services';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -41,11 +41,17 @@ export const Checkout = () => {
       // Per instructions, trigger POST /cart/:userId/checkout
       const response = await CartAPI.checkout(user?.id || '');
       
-      // Navigate to payment simulator
-      const orderId = response?.data?.orderId || `ord_${Date.now()}`;
+      const orderId = response?.data?.data?.orderId || `ord_${Date.now()}`;
+
+      await OrderAPI.updateOrder(orderId, {
+        shipping_address: shipping,
+        contact_number: "",
+        delivery_instructions: "",
+      });
+
       dispatch(clearCart());
       toast.success('Order placed successfully!');
-      navigate(`/payments/pending?orderId=${orderId}`);
+      navigate(`/orders/${orderId}`);
     } catch (error: any) {
       console.error('Checkout failed:', error?.response?.data || error);
       toast.error(error?.response?.data?.error || 'Failed to place order');

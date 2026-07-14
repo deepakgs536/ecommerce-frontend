@@ -2,6 +2,7 @@ import { configureStore, createSlice } from '@reduxjs/toolkit';
 
 import authReducer from './slices/authSlice';
 import cartReducer from './slices/cartSlice';
+import wishlistReducer from './slices/wishlistSlice';
 
 // Temporary dummy slices until Step 9-13
 const productsSlice = createSlice({ name: 'products', initialState: {}, reducers: {} });
@@ -14,6 +15,7 @@ export const store = configureStore({
   reducer: {
     products: productsSlice.reducer,
     cart: cartReducer,
+    wishlist: wishlistReducer,
     orders: ordersSlice.reducer,
     payments: paymentsSlice.reducer,
     auth: authReducer,

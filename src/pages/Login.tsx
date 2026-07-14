@@ -60,6 +60,7 @@ export const Login = () => {
           username: email,
           confirmationCode
         });
+        // After confirmation call the /users endpoint to create the user in the backend write function in service.ts to handle this
         toast.success('Email confirmed! You can now log in.');
         setStep('LOGIN');
         setConfirmationCode('');

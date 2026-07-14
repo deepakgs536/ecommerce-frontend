@@ -62,6 +62,7 @@ const ProtectedRoute = ({ children, role }: { children: React.ReactNode, role?: 
 // Pages (Placeholders for remaining)
 const NotFound = lazy(() => import('@/pages/NotFound').then(module => ({ default: module.NotFound })));
 const Profile = lazy(() => import('@/pages/Profile').then(module => ({ default: module.Profile })));
+const Wishlist = lazy(() => import('@/pages/Wishlist').then(module => ({ default: module.Wishlist })));
 
 // Admin Pages Placeholders for remaining
 // Admin Pages Placeholders for remaining
@@ -79,6 +80,7 @@ const router = createBrowserRouter([
       { path: 'products', element: <ProductListing /> },
       { path: 'products/:id', element: <ProductDetails /> },
       { path: 'cart', element: <Cart /> },
+      { path: 'wishlist', element: <Wishlist /> },
       { path: 'login', element: <Login /> },
       
       // General Protected Routes (Any logged in user)

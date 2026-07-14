@@ -1,10 +1,8 @@
 import { Link, useLocation } from 'react-router-dom';
-import { ShoppingCart, User, Package, LogIn, ChevronDown } from 'lucide-react';
+import { ShoppingCart, User, Package, LogIn, Heart } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useSelector } from 'react-redux';
 import type { RootState } from '@/store';
-
-const CATEGORIES = ['Electronics', 'Apparel', 'Home & Living', 'Accessories'];
 
 export const Navbar = () => {
   const location = useLocation();
@@ -27,31 +25,15 @@ export const Navbar = () => {
               <Link to="/products" className="transition-colors hover:text-primary text-muted-foreground">All Products</Link>
               <Link to="/orders" className="transition-colors hover:text-primary text-muted-foreground">Orders</Link>
               
-              {/* Category Dropdown */}
-              <div className="relative group z-50 h-full flex items-center">
-                <div className="flex items-center gap-1 cursor-pointer transition-colors hover:text-primary text-muted-foreground font-semibold">
-                  Categories <ChevronDown className="h-4 w-4 opacity-50 group-hover:rotate-180 transition-transform duration-300" />
-                </div>
-                
-                <div className="absolute top-14 left-1/2 -translate-x-1/2 w-64 bg-white/95 backdrop-blur-xl rounded-[1.5rem] shadow-2xl border border-slate-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top -translate-y-2 group-hover:translate-y-0 p-3">
-                  <div className="px-4 py-2 mb-2 border-b border-slate-100">
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Shop by Department</span>
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    {CATEGORIES.map(cat => (
-                      <Link 
-                        key={cat}
-                        to={`/products?category=${cat.toLowerCase()}`}
-                        className="w-full text-left px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors"
-                      >
-                        {cat}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              </div>
+
             </nav>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <Link to="/wishlist">
+                <Button variant="ghost" size="icon" className="relative hover:bg-primary/5 rounded-full text-slate-600 hover:text-red-500 transition-colors">
+                  <Heart className="h-5 w-5" />
+                  {/* Badge could show count if needed */}
+                </Button>
+              </Link>
               <Link to="/cart">
                 <Button variant="ghost" size="icon" className="relative hover:bg-primary/5 rounded-full">
                   <ShoppingCart className="h-5 w-5" />

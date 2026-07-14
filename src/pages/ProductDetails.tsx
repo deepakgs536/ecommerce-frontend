@@ -4,20 +4,30 @@ import { ProductAPI, MediaAPI, CartAPI } from '@/api/services';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ShoppingCart, ArrowLeft, ShieldCheck, Truck, RefreshCcw, Minus, Plus } from 'lucide-react';
+import { ShoppingCart, ArrowLeft, ShieldCheck, Truck, RefreshCcw, Minus, Plus, Heart } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 
 import { useDispatch, useSelector } from 'react-redux';
 import { addToCart } from '@/store/slices/cartSlice';
+import { toggleWishlistItem } from '@/store/slices/wishlistSlice';
 
 export const ProductDetails = () => {
   const { id } = useParams<{ id: string }>();
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
   const [quantity, setQuantity] = useState(1);
   const dispatch = useDispatch();
   const { user } = useSelector((state: any) => state.auth);
+  const wishlistItems = useSelector((state: any) => state.wishlist.items);
+  const isWishlisted = product ? wishlistItems.includes(product.productId) : false;
+
+  const handleWishlistToggle = () => {
+    if (product) {
+      dispatch(toggleWishlistItem(product.productId));
+    }
+  };
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -38,6 +48,37 @@ export const ProductDetails = () => {
           }
 
           setProduct(product);
+          
+          // Fetch related products
+          if (product.category) {
+            try {
+              const relatedResponse = await ProductAPI.getAll(product.category);
+              let related = relatedResponse.data.data;
+              
+              if (Array.isArray(related)) {
+                related = related.filter((p: any) => p.productId !== product.productId);
+                
+                // Get signed URLs
+                const productsWithImages = await Promise.all(
+                  related.slice(0, 10).map(async (p: any) => {
+                    if (p.image_url && !p.image_url.startsWith('http')) {
+                      try {
+                        const mRes = await MediaAPI.getDownloadUrl(p.image_url);
+                        return { ...p, image_url: mRes.data.url };
+                      } catch (e) {
+                        return p;
+                      }
+                    }
+                    return p;
+                  })
+                );
+                
+                setRelatedProducts(productsWithImages);
+              }
+            } catch (err) {
+              console.error("Failed to fetch related products", err);
+            }
+          }
         }
       } catch (error) {
         toast.error('Failed to load product details');
@@ -190,15 +231,26 @@ export const ProductDetails = () => {
               </div>
             </div>
 
-            <Button 
-              size="lg" 
-              className="w-full h-14 rounded-2xl text-lg font-bold shadow-xl shadow-primary/20 hover:-translate-y-1 transition-all duration-300" 
-              disabled={product.stock_status !== 'IN_STOCK'}
-              onClick={handleAddToCart}
-            >
-              <ShoppingCart className="mr-2 h-5 w-5" />
-              {product.stock_status === 'IN_STOCK' ? 'Add to Cart' : 'Out of Stock'}
-            </Button>
+            <div className="flex gap-3">
+              <Button 
+                size="lg" 
+                className="flex-1 h-14 rounded-2xl text-lg font-bold shadow-xl shadow-primary/20 hover:-translate-y-1 transition-all duration-300" 
+                disabled={product.stock_status !== 'IN_STOCK'}
+                onClick={handleAddToCart}
+              >
+                <ShoppingCart className="mr-2 h-5 w-5" />
+                {product.stock_status === 'IN_STOCK' ? 'Add to Cart' : 'Out of Stock'}
+              </Button>
+              
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={handleWishlistToggle}
+                className={`h-14 w-14 shrink-0 rounded-2xl border-2 transition-all ${isWishlisted ? 'border-red-100 bg-red-50 text-red-500 hover:bg-red-100' : 'border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-100 hover:bg-red-50'}`}
+              >
+                <Heart className={`h-6 w-6 ${isWishlisted ? 'fill-current' : ''}`} />
+              </Button>
+            </div>
           </div>
 
           {/* Premium Value Props */}
@@ -221,6 +273,28 @@ export const ProductDetails = () => {
           </div>
         </motion.div>
       </div>
+
+      {/* Related Products Section */}
+      {relatedProducts.length > 0 && (
+        <div className="mt-24 border-t border-slate-100 pt-16">
+          <h2 className="text-3xl font-black tracking-tight text-slate-900 mb-8">You might also like</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+            {relatedProducts.map(rp => (
+               <Link key={rp.productId} to={`/products/${rp.productId}`} className="group block">
+                  <div className="aspect-square bg-slate-50 rounded-2xl overflow-hidden mb-4 relative shadow-sm border border-slate-100">
+                    <img 
+                      src={rp.image_url || 'https://images.unsplash.com/photo-1560393464-5c69a73c5770?w=400&q=80'} 
+                      alt={rp.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                    />
+                  </div>
+                  <h3 className="font-bold text-slate-900 truncate px-1">{rp.name}</h3>
+                  <p className="text-primary font-bold mt-1 px-1">${Number(rp.price).toFixed(2)}</p>
+               </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

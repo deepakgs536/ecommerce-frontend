@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { OrderAPI } from '@/api/services';
+import { OrderAPI, ProductAPI, UserAPI } from '@/api/services';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +11,8 @@ import { PackageCheck, Truck, X } from 'lucide-react';
 
 export const AdminOrders = () => {
   const [orders, setOrders] = useState<any[]>([]);
+  const [productNames, setProductNames] = useState<Record<string, string>>({});
+  const [userNames, setUserNames] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
@@ -28,6 +30,32 @@ export const AdminOrders = () => {
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
       setOrders(sortedOrders);
+      
+      const allProductIds = [...new Set(sortedOrders.flatMap((order: any) => order.items?.map((i: any) => i.productId) || []))];
+      const namesMap: Record<string, string> = {};
+      
+      await Promise.all(allProductIds.map(async (pId) => {
+        try {
+          const pRes = await ProductAPI.getById(pId as string, true);
+          if (pRes.data?.data?.name) {
+            namesMap[pId as string] = pRes.data.data.name;
+          }
+        } catch(e) {}
+      }));
+      setProductNames(namesMap);
+      
+      const allUserIds = [...new Set(sortedOrders.map((order: any) => order.userId).filter(Boolean))];
+      const usersMap: Record<string, string> = {};
+      await Promise.all(allUserIds.map(async (uId) => {
+        try {
+          const uRes = await UserAPI.getProfile(uId as string, true);
+          if (uRes.data?.data?.name) {
+            usersMap[uId as string] = uRes.data.data.name;
+          }
+        } catch (e) {}
+      }));
+      setUserNames(usersMap);
+      
     } catch (error) {
       toast.error('Failed to load orders');
     } finally {
@@ -127,7 +155,7 @@ export const AdminOrders = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Order ID</TableHead>
+                    <TableHead>Order / Items</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Customer / Shipping</TableHead>
                     <TableHead>Total</TableHead>
@@ -136,16 +164,27 @@ export const AdminOrders = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {orders.map(order => (
+                  {orders.map(order => {
+                    let orderTitle = `Order #${order.orderId.substring(0,8).toUpperCase()}`;
+                    if (order.items && order.items.length > 0) {
+                      const firstId = order.items[0].productId;
+                      const firstName = productNames[firstId] || order.items[0].name || `Unknown Item`;
+                      orderTitle = order.items.length === 1 ? firstName : `${firstName} + ${order.items.length - 1} more`;
+                    }
+
+                    return (
                     <TableRow 
                       key={order.orderId}
                       className="hover:bg-muted/50 cursor-pointer transition-colors"
                       onClick={() => setSelectedOrder(order)}
                     >
-                      <TableCell className="font-mono text-xs">{order.orderId.substring(0, 8)}...</TableCell>
+                      <TableCell>
+                        <p className="font-bold text-sm truncate max-w-[200px]">{orderTitle}</p>
+                        <p className="font-mono text-xs text-muted-foreground">{order.orderId.substring(0, 8)}</p>
+                      </TableCell>
                       <TableCell>{order.created_at ? format(new Date(order.created_at), 'MMM dd, yyyy') : 'N/A'}</TableCell>
                       <TableCell>
-                        <p className="font-medium text-sm">User: {order.userId}</p>
+                        <p className="font-medium text-sm text-slate-900">{userNames[order.userId] || 'Unknown User'}</p>
                         <p className="text-xs text-muted-foreground truncate max-w-[200px]">
                           {order.shipping_address ? `${order.shipping_address.city}, ${order.shipping_address.state}` : 'N/A'}
                         </p>
@@ -183,7 +222,8 @@ export const AdminOrders = () => {
                         )}
                       </TableCell>
                     </TableRow>
-                  ))}
+                    );
+                  })}
                   {orders.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
@@ -225,8 +265,9 @@ export const AdminOrders = () => {
 
               <div className="grid grid-cols-2 gap-6 text-sm">
                 <div>
-                  <p className="text-muted-foreground mb-1 font-semibold">Customer ID</p>
-                  <p className="font-medium">{selectedOrder.userId}</p>
+                  <p className="text-muted-foreground mb-1 font-semibold">Customer</p>
+                  <p className="font-medium">{userNames[selectedOrder.userId] || 'Unknown User'}</p>
+                  <p className="text-xs text-muted-foreground mt-1">ID: {selectedOrder.userId}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground mb-1 font-semibold">Order Date</p>
@@ -248,20 +289,26 @@ export const AdminOrders = () => {
               <div>
                 <p className="font-semibold mb-3 border-b pb-2">Order Items</p>
                 <div className="space-y-3">
-                  {selectedOrder.items?.map((item: any, i: number) => (
+                  {selectedOrder.items?.map((item: any, i: number) => {
+                    const itemName = productNames[item.productId] || item.name || 'Unknown Item';
+                    return (
                     <div key={i} className="flex justify-between items-center bg-muted/10 p-3 rounded border">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-muted rounded flex items-center justify-center text-xs font-mono">
-                          {item.productId?.substring(0, 4)}
+                        <div className="w-10 h-10 bg-muted rounded flex items-center justify-center text-xs font-mono shrink-0">
+                          <PackageCheck className="h-5 w-5 text-muted-foreground" />
                         </div>
                         <div>
-                          <p className="font-medium text-sm">Product ID: {item.productId}</p>
-                          <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
+                          <p className="font-medium text-sm text-slate-900">{itemName}</p>
+                          <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground">
+                            <span>ID: {item.productId.substring(0, 8)}...</span>
+                            <span>•</span>
+                            <span>Qty: {item.quantity}</span>
+                          </div>
                         </div>
                       </div>
-                      <p className="font-semibold">${(item.price * item.quantity).toFixed(2)}</p>
+                      <p className="font-semibold">${(item.price * item.quantity || item.price_at_addition * item.quantity || 0).toFixed(2)}</p>
                     </div>
-                  ))}
+                  )})}
                 </div>
               </div>
 

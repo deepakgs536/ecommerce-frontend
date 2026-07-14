@@ -17,9 +17,9 @@ export const ProductAPI = {
     const params = category && category !== 'All Categories' ? { category } : undefined;
     return axiosClient.get('/products', { params });
   },
-  getById: async (id: string) => {
+  getById: async (id: string, suppressError = false) => {
     if (useMock) return mockResponse({ success: true, data: mockProducts.find(p => p.productId === id) });
-    return axiosClient.get(`/products/${id}`);
+    return axiosClient.get(`/products/${id}`, { suppressError } as any);
   },
   create: async (data: any) => {
     if (useMock) return mockResponse({ success: true, data: { ...data, productId: `p_${Date.now()}` } });
@@ -124,9 +124,9 @@ export const InventoryAPI = {
 
 // --- USER SERVICE ---
 export const UserAPI = {
-  getProfile: async (userId: string) => {
+  getProfile: async (userId: string, suppressError = false) => {
     if (useMock) return mockResponse({ success: true, data: { userId, name: 'Admin User', email: 'admin@example.com', role: 'admin', profile_image_url: '' } });
-    return axiosClient.get(`/users/${userId}`);
+    return axiosClient.get(`/users/${userId}`, { suppressError } as any);
   },
   updateProfile: async (userId: string, data: any) => {
     if (useMock) return mockResponse({ success: true, message: 'Profile updated successfully', data });
