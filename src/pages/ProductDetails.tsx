@@ -1,16 +1,17 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ProductAPI, MediaAPI, CartAPI } from '@/api/services';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ShoppingCart, ArrowLeft, ShieldCheck, Truck, RefreshCcw, Minus, Plus, Heart } from 'lucide-react';
+import { ShoppingCart, ArrowLeft, ShieldCheck, Truck, RefreshCcw, Minus, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 
 import { useDispatch, useSelector } from 'react-redux';
 import { addToCart } from '@/store/slices/cartSlice';
-import { toggleWishlistItem } from '@/store/slices/wishlistSlice';
+// import { toggleWishlistItem } from '@/store/slices/wishlistSlice';
+import type { RootState } from '@/store';
 
 export const ProductDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -19,15 +20,16 @@ export const ProductDetails = () => {
   const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
   const [quantity, setQuantity] = useState(1);
   const dispatch = useDispatch();
-  const { user } = useSelector((state: any) => state.auth);
-  const wishlistItems = useSelector((state: any) => state.wishlist.items);
-  const isWishlisted = product ? wishlistItems.includes(product.productId) : false;
+  const navigate = useNavigate();
+  const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+  // const wishlistItems = useSelector((state: any) => state.wishlist.items);
+  // const isWishlisted = product ? wishlistItems.includes(product.productId) : false;
 
-  const handleWishlistToggle = () => {
-    if (product) {
-      dispatch(toggleWishlistItem(product.productId));
-    }
-  };
+  // const handleWishlistToggle = () => {
+  //   if (product) {
+  //     dispatch(toggleWishlistItem(product.productId));
+  //   }
+  // };
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -90,6 +92,12 @@ export const ProductDetails = () => {
   }, [id]);
 
   const handleAddToCart = async () => {
+    if (!isAuthenticated) {
+      toast.error('Login as Customer');
+      navigate('/login');
+      return;
+    }
+
     dispatch(addToCart({ ...product, quantity }));
     
     // Sync with backend if logged in
@@ -242,14 +250,14 @@ export const ProductDetails = () => {
                 {product.stock_status === 'IN_STOCK' ? 'Add to Cart' : 'Out of Stock'}
               </Button>
               
-              <Button
+              {/* <Button
                 size="lg"
                 variant="outline"
                 onClick={handleWishlistToggle}
                 className={`h-14 w-14 shrink-0 rounded-2xl border-2 transition-all ${isWishlisted ? 'border-red-100 bg-red-50 text-red-500 hover:bg-red-100' : 'border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-100 hover:bg-red-50'}`}
               >
                 <Heart className={`h-6 w-6 ${isWishlisted ? 'fill-current' : ''}`} />
-              </Button>
+              </Button> */}
             </div>
           </div>
 

@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import type { RootState } from '@/store';
 import { OrderAPI, ProductAPI } from '@/api/services';
 import { Link } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';

@@ -8,7 +8,8 @@ import { toast } from 'sonner';
 import { useDispatch, useSelector } from 'react-redux';
 import { addToCart } from '@/store/slices/cartSlice';
 import { Search, ChevronDown, Check } from 'lucide-react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import type { RootState } from '@/store';
 
 const CATEGORIES = ['All Categories', 'Electronics', 'Apparel', 'Home & Living', 'Accessories'];
 
@@ -74,7 +75,8 @@ export const ProductListing = () => {
     fetchProducts();
   }, [selectedCategory]);
 
-  const { user } = useSelector((state: any) => state.auth);
+  const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+  const navigate = useNavigate();
 
   const filteredProducts = [...products]
     .filter(p => {
@@ -92,6 +94,12 @@ export const ProductListing = () => {
     });
 
   const handleAddToCart = async (product: any) => {
+    if (!isAuthenticated) {
+      toast.error('Login as Customer');
+      navigate('/login');
+      return;
+    }
+
     dispatch(addToCart(product));
     
     // Sync with backend if logged in

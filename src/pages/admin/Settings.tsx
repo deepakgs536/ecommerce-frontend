@@ -1,18 +1,20 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from '@/store';
-import { loginSuccess } from '@/store/slices/authSlice';
+import { loginSuccess, logout } from '@/store/slices/authSlice';
+import { useNavigate } from 'react-router-dom';
 import { UserAPI, MediaAPI } from '@/api/services';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 import { toast } from 'sonner';
-import { Camera, Save, Loader2, User as UserIcon } from 'lucide-react';
+import { Camera, Save, Loader2, User as UserIcon, LogOut } from 'lucide-react';
 
 export const AdminSettings = () => {
   const { user, token } = useSelector((state: RootState) => state.auth);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   
   const [profileData, setProfileData] = useState({
     name: '',
@@ -132,6 +134,12 @@ export const AdminSettings = () => {
     }
   };
 
+  const handleLogout = () => {
+    dispatch(logout());
+    toast.success('Logged out successfully');
+    navigate('/login');
+  };
+
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -235,6 +243,28 @@ export const AdminSettings = () => {
                 ) : (
                   <><Save className="mr-2 h-4 w-4" /> Save Changes</>
                 )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="pt-6">
+        <Card className="shadow-sm border-red-100 bg-red-50/30">
+          <CardHeader>
+            <CardTitle className="text-red-600 flex items-center gap-2">
+              Account Actions
+            </CardTitle>
+            <CardDescription className="text-red-600/80">Manage your session and account security.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-red-100 shadow-sm">
+              <div>
+                <h4 className="font-medium text-slate-900">Sign Out</h4>
+                <p className="text-sm text-slate-500">Log out of your admin account on this device.</p>
+              </div>
+              <Button onClick={handleLogout} variant="destructive" className="shadow-md">
+                <LogOut className="mr-2 h-4 w-4" /> Log Out
               </Button>
             </div>
           </CardContent>

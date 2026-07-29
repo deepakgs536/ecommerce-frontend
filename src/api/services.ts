@@ -181,3 +181,31 @@ export const MediaAPI = {
     });
   }
 };
+
+// --- ANALYTICS SERVICE ---
+export const AnalyticsAPI = {
+  getHealth: async () => {
+    return axiosClient.get('/analytics/health');
+  },
+  getDashboardSummary: async () => {
+    return axiosClient.get('/analytics/dashboard');
+  },
+  getRevenueAnalytics: async () => {
+    return axiosClient.get('/analytics/revenue');
+  },
+  getOrderAnalytics: async () => {
+    return axiosClient.get('/analytics/orders');
+  },
+  getProductAnalytics: async () => {
+    return axiosClient.get('/analytics/products');
+  },
+  getCustomerAnalytics: async () => {
+    return axiosClient.get('/analytics/customers');
+  },
+  getInventoryAnalytics: async () => {
+    return axiosClient.get('/analytics/inventory');
+  },
+  getPaymentAnalytics: async () => {
+    return axiosClient.get('/analytics/payments');
+  }
+};

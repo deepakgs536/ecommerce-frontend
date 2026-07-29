@@ -239,8 +239,12 @@ export const OrderDetails = () => {
                     <span className="text-slate-900">${order.total_amount?.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm font-medium">
+                    <span className="text-slate-500">Tax(8%)</span>
+                    <span className="text-green-600 font-bold">$20</span>
+                  </div>
+                  <div className="flex justify-between text-sm font-medium">
                     <span className="text-slate-500">Shipping</span>
-                    <span className="text-green-600 font-bold">Free</span>
+                    <span className="text-green-600 font-bold">$15</span>
                   </div>
                   <div className="border-t border-slate-100 pt-4 flex justify-between font-black text-xl">
                     <span>Total</span>

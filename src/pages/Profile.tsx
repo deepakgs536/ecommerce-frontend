@@ -343,7 +343,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
-import { LogOut, User, ShieldCheck, Mail, Camera, Loader2, Edit3, Image as ImageIcon, X } from 'lucide-react';
+import { LogOut, User, ShieldCheck, Mail, Camera, Loader2, Edit3, Image as ImageIcon } from 'lucide-react';
 import { signOut } from 'aws-amplify/auth';
 import { logout } from '@/store/slices/authSlice';
 import { useNavigate } from 'react-router-dom';

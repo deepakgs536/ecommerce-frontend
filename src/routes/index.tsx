@@ -15,7 +15,7 @@ const PaymentStatus = lazy(() => import('@/pages/PaymentStatus').then(module => 
 const AdminDashboard = lazy(() => import('@/pages/admin/Dashboard').then(module => ({ default: module.AdminDashboard })));
 const AdminProducts = lazy(() => import('@/pages/admin/Products').then(module => ({ default: module.AdminProducts })));
 const AdminCreateProduct = lazy(() => import('@/pages/admin/CreateProduct').then(module => ({ default: module.CreateProduct })));
-const AdminMedia = lazy(() => import('@/pages/admin/MediaUpload').then(module => ({ default: module.MediaUpload })));
+// const AdminMedia = lazy(() => import('@/pages/admin/MediaUpload').then(module => ({ default: module.MediaUpload })));
 const AdminOrders = lazy(() => import('@/pages/admin/Orders').then(module => ({ default: module.AdminOrders })));
 const AdminInventory = lazy(() => import('@/pages/admin/Inventory').then(module => ({ default: module.AdminInventory })));
 const AdminPayments = lazy(() => import('@/pages/admin/Payments').then(module => ({ default: module.AdminPayments })));
@@ -59,6 +59,28 @@ const ProtectedRoute = ({ children, role }: { children: React.ReactNode, role?: 
   return <>{children}</>;
 };
 
+// Redirect admins away from customer/public pages to the admin dashboard
+const AdminRedirectGuard = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+
+  if (isAuthenticated && user?.role === 'admin') {
+    return <Navigate to="/admin" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+// Redirect logged in customers from the landing page to the products page
+const CustomerHomeRedirect = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+
+  if (isAuthenticated && user?.role === 'customer') {
+    return <Navigate to="/products" replace />;
+  }
+
+  return <>{children}</>;
+};
+
 // Pages (Placeholders for remaining)
 const NotFound = lazy(() => import('@/pages/NotFound').then(module => ({ default: module.NotFound })));
 const Profile = lazy(() => import('@/pages/Profile').then(module => ({ default: module.Profile })));
@@ -66,17 +88,21 @@ const Wishlist = lazy(() => import('@/pages/Wishlist').then(module => ({ default
 
 // Admin Pages Placeholders for remaining
 // Admin Pages Placeholders for remaining
-const AdminAnalytics = () => <div>Admin Analytics</div>;
+const AdminAnalytics = lazy(() => import('@/pages/admin/Analytics').then(module => ({ default: module.AdminAnalytics })));
 const AdminSettings = lazy(() => import('@/pages/admin/Settings').then(module => ({ default: module.AdminSettings })));
 
 
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <RootLayout />,
+    element: (
+      <AdminRedirectGuard>
+        <RootLayout />
+      </AdminRedirectGuard>
+    ),
     errorElement: <NotFound />,
     children: [
-      { index: true, element: <Home /> },
+      { index: true, element: <CustomerHomeRedirect><Home /></CustomerHomeRedirect> },
       { path: 'products', element: <ProductListing /> },
       { path: 'products/:id', element: <ProductDetails /> },
       { path: 'cart', element: <Cart /> },

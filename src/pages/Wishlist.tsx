@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { Link } from 'react-router-dom';
-import { HeartCrack, ShoppingCart, ArrowLeft, Loader2, Trash2 } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { HeartCrack, ShoppingCart, ArrowLeft, Trash2 } from 'lucide-react';
 import { ProductAPI, MediaAPI } from '@/api/services';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -12,7 +12,9 @@ import { toast } from 'sonner';
 
 export const Wishlist = () => {
   const wishlistItems = useSelector((state: RootState) => state.wishlist.items);
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -71,6 +73,12 @@ export const Wishlist = () => {
   };
 
   const handleAddToCart = (product: any) => {
+    if (!isAuthenticated) {
+      toast.error('Login as Customer');
+      navigate('/login');
+      return;
+    }
+
     dispatch(addToCart({ ...product, quantity: 1 }));
     toast.success(`${product.name} added to cart`);
   };

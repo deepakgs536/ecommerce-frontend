@@ -1,11 +1,12 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Sparkles, ArrowRight, Truck, CheckCircle2, MessageSquare, Play, Star } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { ProductAPI, MediaAPI } from '@/api/services';
 import { ProductCard } from '@/components/ui/ProductCard';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { addToCart } from '@/store/slices/cartSlice';
+import type { RootState } from '@/store';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion, useScroll, useTransform } from 'framer-motion';
@@ -28,6 +29,8 @@ export const Home = () => {
   const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
   const { scrollYProgress } = useScroll();
   const yParallax = useTransform(scrollYProgress, [0, 1], [0, 150]);
   const opacityFade = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
@@ -58,6 +61,11 @@ export const Home = () => {
   }, []);
 
   const handleAddToCart = (product: any) => {
+    if (!isAuthenticated) {
+      toast.error('Login as Customer');
+      navigate('/login');
+      return;
+    }
     dispatch(addToCart(product));
     toast.success(`${product.name} added to cart`);
   };
@@ -127,8 +135,8 @@ export const Home = () => {
             >
               <div className="absolute inset-0 rounded-[2.5rem] overflow-hidden shadow-2xl bg-slate-100">
                 <img 
-                  src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=1200&auto=format&fit=crop" 
-                  alt="Minimalist Headphones" 
+                  src="/hero-product.jpg" 
+                  alt="Minimalist Modern Lifestyle Product" 
                   className="object-cover w-full h-full object-center"
                 />
               </div>
@@ -139,11 +147,11 @@ export const Home = () => {
                 className="absolute top-1/4 -left-12 bg-white/80 backdrop-blur-xl p-4 rounded-2xl shadow-xl border border-white/40 flex items-center gap-4"
               >
                 <div className="h-12 w-12 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold">
-                  $89
+                  $129
                 </div>
                 <div>
-                  <p className="font-bold text-slate-900 leading-tight">Studio Pro</p>
-                  <p className="text-sm text-slate-500 font-medium">Noise Cancelling</p>
+                  <p className="font-bold text-slate-900 leading-tight">Aura Sound</p>
+                  <p className="text-sm text-slate-500 font-medium">360° Spatial Audio</p>
                 </div>
               </motion.div>
             </motion.div>
