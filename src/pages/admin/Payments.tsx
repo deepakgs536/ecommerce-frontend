@@ -61,13 +61,13 @@ export const AdminPayments = () => {
   const pendingVolume = payments.filter(p => p.status === 'PENDING').reduce((acc, curr) => acc + curr.amount, 0);
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-10">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="min-h-[calc(100vh-64px)] bg-[#F8FAFC] py-8 px-4 sm:px-8">
+      <div className="flex flex-col md:flex-row justify-between md:items-end gap-4 mb-8">
         <div>
-          <h1 className="text-4xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground to-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
             Payments Ledger
           </h1>
-          <p className="text-muted-foreground mt-1.5 text-lg">Track transactions, settlements, and payment health.</p>
+          <p className="text-slate-500 mt-1 text-sm font-medium">Track transactions, settlements, and payment health.</p>
         </div>
         <Button 
           variant="outline" 
@@ -80,63 +80,63 @@ export const AdminPayments = () => {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="premium-shadow border-0 bg-gradient-to-br from-green-500/10 via-background to-background overflow-hidden relative">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <Card className="border-none shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] rounded-[1.5rem] bg-white overflow-hidden relative">
           <div className="absolute top-0 right-0 p-4 opacity-10">
-            <DollarSign className="w-16 h-16" />
+            <DollarSign className="w-16 h-16 text-emerald-600" />
           </div>
           <CardHeader className="pb-2 relative z-10">
-            <CardTitle className="text-sm font-semibold tracking-wider text-green-600 dark:text-green-400 uppercase">
+            <CardTitle className="text-xs font-semibold tracking-wider text-emerald-600 uppercase">
               Settled Volume
             </CardTitle>
           </CardHeader>
           <CardContent className="relative z-10">
-            <div className="text-4xl font-black text-green-700 dark:text-green-500">
+            <div className="text-3xl font-black text-slate-900">
               {loading ? '-' : `$${totalVolume.toFixed(2)}`}
             </div>
-            <p className="text-sm text-muted-foreground mt-1 font-medium">Completed transactions</p>
+            <p className="text-sm text-slate-500 mt-1 font-medium">Completed transactions</p>
           </CardContent>
         </Card>
 
-        <Card className="premium-shadow border-0 bg-gradient-to-br from-amber-500/10 via-background to-background overflow-hidden relative">
+        <Card className="border-none shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] rounded-[1.5rem] bg-white overflow-hidden relative">
           <div className="absolute top-0 right-0 p-4 opacity-10">
-            <Activity className="w-16 h-16" />
+            <Activity className="w-16 h-16 text-amber-600" />
           </div>
           <CardHeader className="pb-2 relative z-10">
-            <CardTitle className="text-sm font-semibold tracking-wider text-amber-600 dark:text-amber-400 uppercase">
+            <CardTitle className="text-xs font-semibold tracking-wider text-amber-600 uppercase">
               Pending Authorization
             </CardTitle>
           </CardHeader>
           <CardContent className="relative z-10">
-            <div className="text-4xl font-black text-amber-700 dark:text-amber-500">
+            <div className="text-3xl font-black text-slate-900">
               {loading ? '-' : `$${pendingVolume.toFixed(2)}`}
             </div>
-            <p className="text-sm text-muted-foreground mt-1 font-medium">Awaiting settlement</p>
+            <p className="text-sm text-slate-500 mt-1 font-medium">Awaiting settlement</p>
           </CardContent>
         </Card>
 
-        <Card className="premium-shadow border-0 bg-gradient-to-br from-blue-500/10 via-background to-background overflow-hidden relative">
+        <Card className="border-none shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] rounded-[1.5rem] bg-white overflow-hidden relative">
           <div className="absolute top-0 right-0 p-4 opacity-10">
-            <CreditCard className="w-16 h-16" />
+            <CreditCard className="w-16 h-16 text-blue-600" />
           </div>
           <CardHeader className="pb-2 relative z-10">
-            <CardTitle className="text-sm font-semibold tracking-wider text-blue-600 dark:text-blue-400 uppercase">
+            <CardTitle className="text-xs font-semibold tracking-wider text-blue-600 uppercase">
               Total Transactions
             </CardTitle>
           </CardHeader>
           <CardContent className="relative z-10">
-            <div className="text-4xl font-black text-blue-700 dark:text-blue-500">
+            <div className="text-3xl font-black text-slate-900">
               {loading ? '-' : payments.length}
             </div>
-            <p className="text-sm text-muted-foreground mt-1 font-medium">All payment attempts</p>
+            <p className="text-sm text-slate-500 mt-1 font-medium">All payment attempts</p>
           </CardContent>
         </Card>
       </div>
 
-      <Card className="premium-shadow border-0 bg-background/60 backdrop-blur-xl">
-        <CardHeader className="border-b bg-muted/20 pb-4">
-          <CardTitle>Transaction History</CardTitle>
-          <CardDescription>Comprehensive log of all payment gateways and customer transactions.</CardDescription>
+      <Card className="border-none shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] rounded-[2rem] bg-white overflow-hidden">
+        <CardHeader className="border-b border-slate-50 px-6 pt-6 pb-3">
+          <CardTitle className="text-lg font-bold text-slate-900">Transaction History</CardTitle>
+          <CardDescription className="text-slate-500 text-xs font-medium mt-1">Comprehensive log of all payment gateways and customer transactions.</CardDescription>
         </CardHeader>
         <CardContent className="p-0">
           {loading ? (
@@ -149,44 +149,44 @@ export const AdminPayments = () => {
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader className="bg-transparent hover:bg-transparent">
-                  <TableRow>
-                    <TableHead className="py-4 px-6">Payment ID / Txn</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Order ID</TableHead>
-                    <TableHead>Method</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
-                    <TableHead className="text-center">Status</TableHead>
-                    <TableHead className="text-right pr-6">Date</TableHead>
+                  <TableRow className="border-slate-50">
+                    <TableHead className="py-4 px-6 font-semibold text-slate-500">Payment ID / Txn</TableHead>
+                    <TableHead className="font-semibold text-slate-500">Customer</TableHead>
+                    <TableHead className="font-semibold text-slate-500">Order ID</TableHead>
+                    <TableHead className="font-semibold text-slate-500">Method</TableHead>
+                    <TableHead className="text-right font-semibold text-slate-500">Amount</TableHead>
+                    <TableHead className="text-center font-semibold text-slate-500">Status</TableHead>
+                    <TableHead className="text-right pr-6 font-semibold text-slate-500">Date</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {payments.map(payment => (
                     <TableRow 
                       key={payment.paymentId} 
-                      className="hover:bg-muted/50 cursor-pointer transition-colors"
+                      className="hover:bg-slate-50/50 cursor-pointer transition-colors border-slate-50"
                       onClick={() => setSelectedPayment(payment)}
                     >
                       <TableCell className="py-3 px-6">
-                        <p className="font-mono text-xs font-semibold">{payment.paymentId}</p>
-                        <p className="font-mono text-[10px] text-muted-foreground mt-0.5">{payment.transaction_id || 'N/A'}</p>
+                        <p className="font-mono text-xs font-bold text-slate-900">{payment.paymentId}</p>
+                        <p className="font-mono text-[10px] text-slate-400 mt-0.5">{payment.transaction_id || 'N/A'}</p>
                       </TableCell>
-                      <TableCell className="text-sm font-medium">
+                      <TableCell className="text-sm font-bold text-slate-900">
                         {userNames[payment.userId] || 'Unknown User'}
-                        <p className="font-mono text-[10px] text-muted-foreground mt-0.5">{payment.userId}</p>
+                        <p className="font-mono text-[10px] text-slate-400 mt-0.5 font-medium">{payment.userId}</p>
                       </TableCell>
-                      <TableCell className="font-mono text-xs text-muted-foreground">{payment.orderId.substring(0, 8)}...</TableCell>
+                      <TableCell className="font-mono text-xs text-slate-500">{payment.orderId.substring(0, 8)}...</TableCell>
                       <TableCell>
-                        <Badge variant="outline" className="bg-background/50 font-medium">
+                        <Badge variant="outline" className="bg-slate-50 border-slate-200 text-slate-600 font-bold">
                           {payment.payment_method}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right font-bold text-base">
+                      <TableCell className="text-right font-black text-sm text-slate-900">
                         {payment.currency === 'USD' ? '$' : ''}{payment.amount.toFixed(2)}
                       </TableCell>
                       <TableCell className="text-center">
-                        {getStatusBadge(payment.status)}
+                        <div className="scale-90">{getStatusBadge(payment.status)}</div>
                       </TableCell>
-                      <TableCell className="text-right pr-6 text-xs text-muted-foreground font-medium">
+                      <TableCell className="text-right pr-6 text-xs text-slate-500 font-medium">
                         {payment.created_at ? format(new Date(payment.created_at), 'MMM dd, HH:mm') : 'N/A'}
                       </TableCell>
                     </TableRow>

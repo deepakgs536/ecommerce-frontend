@@ -136,13 +136,13 @@ export const AdminInventory = () => {
   const totalReserved = inventoryItems.reduce((acc, curr) => acc + (curr.reserved_quantity || 0), 0);
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-10">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="min-h-[calc(100vh-64px)] bg-[#F8FAFC] py-8 px-4 sm:px-8">
+      <div className="flex flex-col md:flex-row justify-between md:items-end gap-4 mb-8">
         <div>
-          <h1 className="text-4xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground to-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
             Inventory Central
           </h1>
-          <p className="text-muted-foreground mt-1.5 text-lg">Real-time stock levels and warehouse distribution.</p>
+          <p className="text-slate-500 mt-1 text-sm font-medium">Real-time stock levels and warehouse distribution.</p>
         </div>
         <Button 
           variant="outline" 
@@ -155,43 +155,43 @@ export const AdminInventory = () => {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="premium-shadow border-0 bg-gradient-to-br from-blue-500/10 via-background to-background overflow-hidden relative">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <Card className="border-none shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] rounded-[1.5rem] bg-white overflow-hidden relative">
           <div className="absolute top-0 right-0 p-4 opacity-10">
-            <Package className="w-16 h-16" />
+            <Package className="w-16 h-16 text-blue-600" />
           </div>
           <CardHeader className="pb-2 relative z-10">
-            <CardTitle className="text-sm font-semibold tracking-wider text-blue-600 dark:text-blue-400 uppercase">
+            <CardTitle className="text-xs font-semibold tracking-wider text-blue-600 uppercase">
               Total Available
             </CardTitle>
           </CardHeader>
           <CardContent className="relative z-10">
-            <div className="text-4xl font-black">{loading ? '-' : totalAvailable}</div>
-            <p className="text-sm text-muted-foreground mt-1 font-medium">Ready to ship units</p>
+            <div className="text-3xl font-black text-slate-900">{loading ? '-' : totalAvailable}</div>
+            <p className="text-sm text-slate-500 mt-1 font-medium">Ready to ship units</p>
           </CardContent>
         </Card>
 
-        <Card className="premium-shadow border-0 bg-gradient-to-br from-amber-500/10 via-background to-background overflow-hidden relative">
+        <Card className="border-none shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] rounded-[1.5rem] bg-white overflow-hidden relative">
           <div className="absolute top-0 right-0 p-4 opacity-10">
-            <ShieldCheck className="w-16 h-16" />
+            <ShieldCheck className="w-16 h-16 text-amber-600" />
           </div>
           <CardHeader className="pb-2 relative z-10">
-            <CardTitle className="text-sm font-semibold tracking-wider text-amber-600 dark:text-amber-400 uppercase">
+            <CardTitle className="text-xs font-semibold tracking-wider text-amber-600 uppercase">
               Reserved Stock
             </CardTitle>
           </CardHeader>
           <CardContent className="relative z-10">
-            <div className="text-4xl font-black text-amber-700 dark:text-amber-500">{loading ? '-' : totalReserved}</div>
-            <p className="text-sm text-muted-foreground mt-1 font-medium">Allocated for pending orders</p>
+            <div className="text-3xl font-black text-slate-900">{loading ? '-' : totalReserved}</div>
+            <p className="text-sm text-slate-500 mt-1 font-medium">Allocated for pending orders</p>
           </CardContent>
         </Card>
 
-        <Card className={`premium-shadow border-0 overflow-hidden relative ${outOfStockCount > 0 ? 'bg-gradient-to-br from-destructive/15 via-destructive/5 to-background' : 'bg-gradient-to-br from-muted/30 to-background'}`}>
+        <Card className={`border-none shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] rounded-[1.5rem] bg-white overflow-hidden relative`}>
           <div className="absolute top-0 right-0 p-4 opacity-10">
-            <TrendingDown className="w-16 h-16" />
+            <TrendingDown className={`w-16 h-16 ${outOfStockCount > 0 ? 'text-destructive' : 'text-slate-400'}`} />
           </div>
           <CardHeader className="pb-2 relative z-10">
-            <CardTitle className={`text-sm font-semibold tracking-wider uppercase flex items-center gap-2 ${outOfStockCount > 0 ? 'text-destructive' : 'text-muted-foreground'}`}>
+            <CardTitle className={`text-xs font-semibold tracking-wider uppercase flex items-center gap-2 ${outOfStockCount > 0 ? 'text-destructive' : 'text-slate-500'}`}>
               {outOfStockCount > 0 && <AlertCircle className="h-4 w-4" />}
               Stock Depleted
             </CardTitle>
@@ -208,49 +208,46 @@ export const AdminInventory = () => {
       </div>
 
       {/* Low Stock & Depleted Collapsible List */}
-      <div className="bg-amber-500/5 border border-amber-500/20 rounded-2xl overflow-hidden shadow-sm">
+      <div className="mb-8 bg-amber-50 border border-amber-100 rounded-[1.5rem] overflow-hidden shadow-sm">
         <button
           onClick={() => setShowLowStock(!showLowStock)}
-          className="w-full flex items-center justify-between p-5 bg-amber-500/10 hover:bg-amber-500/15 transition-colors focus:outline-none"
+          className="w-full flex items-center justify-between p-5 bg-amber-100/50 hover:bg-amber-100 transition-colors focus:outline-none"
         >
           <div className="flex items-center gap-3">
-            <AlertCircle className="text-amber-600 dark:text-amber-500 w-5 h-5" />
-            <span className="font-bold text-amber-800 dark:text-amber-400">
+            <AlertCircle className="text-amber-600 w-5 h-5" />
+            <span className="font-bold text-amber-800">
               Low Stock & Depleted Items ({inventoryItems.filter(i => i.available_quantity < 10).length})
             </span>
           </div>
           {showLowStock ? (
-            <ChevronUp className="text-amber-600 dark:text-amber-500 w-5 h-5" />
+            <ChevronUp className="text-amber-600 w-5 h-5" />
           ) : (
-            <ChevronDown className="text-amber-600 dark:text-amber-500 w-5 h-5" />
+            <ChevronDown className="text-amber-600 w-5 h-5" />
           )}
         </button>
         {showLowStock && (
-          <div className="p-5 border-t border-amber-500/10 space-y-3 bg-amber-500/5 animate-in slide-in-from-top-2 duration-300">
+          <div className="p-5 border-t border-amber-100 space-y-3 bg-amber-50/50 animate-in slide-in-from-top-2 duration-300">
             {inventoryItems.filter(i => i.available_quantity < 10).length === 0 ? (
-              <p className="text-sm text-amber-700/70 dark:text-amber-400/70 text-center py-4 font-medium">All items have sufficient stock (10+).</p>
+              <p className="text-sm text-amber-700/70 text-center py-4 font-medium">All items have sufficient stock (10+).</p>
             ) : (
               inventoryItems.filter(i => i.available_quantity < 10).map(item => (
-                <div key={item.productId} className="flex items-center justify-between bg-background/80 backdrop-blur-md p-4 rounded-xl border border-amber-500/10 shadow-sm transition-all hover:shadow-md">
+                <div key={item.productId} className="flex items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-slate-100">
                   <div className="flex items-center gap-4">
                     <img src={item.image_url || 'https://images.unsplash.com/photo-1560393464-5c69a73c5770?w=100&q=80'} alt={item.name} className="w-12 h-12 rounded-lg object-cover shadow-sm ring-1 ring-border/50" />
                     <div>
-                      <p className="font-bold text-sm sm:text-base">{item.name}</p>
-                      <p className="text-xs text-muted-foreground font-mono mt-0.5">{item.sku || 'N/A'}</p>
+                      <p className="font-bold text-sm text-slate-900">{item.name}</p>
+                      <p className="text-xs text-slate-500 font-mono mt-0.5">{item.sku || 'N/A'}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 sm:gap-6">
                     <div className="text-right">
-                      <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider font-bold">Qty</p>
-                      <Badge variant={item.available_quantity === 0 ? 'destructive' : 'secondary'} className={`text-sm px-2.5 py-0.5 ${item.available_quantity > 0 ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-400' : ''}`}>
+                      <p className="text-xs text-slate-400 mb-1 uppercase tracking-wider font-bold">Qty</p>
+                      <Badge variant={item.available_quantity === 0 ? 'destructive' : 'secondary'} className={`text-sm px-2.5 py-0.5 ${item.available_quantity > 0 ? 'bg-amber-100 text-amber-800' : ''}`}>
                         {item.available_quantity}
                       </Badge>
                     </div>
-                    <Button variant="outline" size="sm" onClick={() => handleRestock(item)} disabled={actionLoading} className="hidden sm:flex border-green-200 text-green-700 hover:bg-green-50 dark:border-green-900 dark:text-green-400 dark:hover:bg-green-900/30 shadow-sm">
+                    <Button variant="outline" size="sm" onClick={() => handleRestock(item)} disabled={actionLoading} className="hidden sm:flex border-emerald-200 text-emerald-700 hover:bg-emerald-50 shadow-sm">
                       <PlusCircle className="h-4 w-4 mr-2" /> Restock
-                    </Button>
-                    <Button variant="outline" size="icon" onClick={() => handleRestock(item)} disabled={actionLoading} className="sm:hidden border-green-200 text-green-700 hover:bg-green-50 dark:border-green-900 dark:text-green-400 dark:hover:bg-green-900/30">
-                      <PlusCircle className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
@@ -260,10 +257,10 @@ export const AdminInventory = () => {
         )}
       </div>
 
-      <Card className="premium-shadow border-0 bg-background/60 backdrop-blur-xl">
-        <CardHeader className="border-b bg-muted/20 pb-4">
-          <CardTitle>Stock Overview</CardTitle>
-          <CardDescription>Manage individual product quantities and allocations.</CardDescription>
+      <Card className="border-none shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] rounded-[2rem] bg-white overflow-hidden">
+        <CardHeader className="border-b border-slate-50 px-6 pt-6 pb-3">
+          <CardTitle className="text-lg font-bold text-slate-900">Stock Overview</CardTitle>
+          <CardDescription className="text-slate-500 text-xs font-medium mt-1">Manage individual product quantities and allocations.</CardDescription>
         </CardHeader>
         <CardContent className="p-0">
           {loading ? (
@@ -276,14 +273,14 @@ export const AdminInventory = () => {
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader className="bg-transparent hover:bg-transparent">
-                  <TableRow>
-                    <TableHead className="py-4 px-6">Product</TableHead>
-                    <TableHead>SKU</TableHead>
-                    <TableHead className="text-right">Available</TableHead>
-                    <TableHead className="text-right">Reserved</TableHead>
-                    <TableHead className="text-center">Status</TableHead>
-                    <TableHead>Last Updated</TableHead>
-                    <TableHead className="text-right pr-6">Action</TableHead>
+                  <TableRow className="border-slate-50">
+                    <TableHead className="py-4 px-6 font-semibold text-slate-500">Product</TableHead>
+                    <TableHead className="font-semibold text-slate-500">SKU</TableHead>
+                    <TableHead className="text-right font-semibold text-slate-500">Available</TableHead>
+                    <TableHead className="text-right font-semibold text-slate-500">Reserved</TableHead>
+                    <TableHead className="text-center font-semibold text-slate-500">Status</TableHead>
+                    <TableHead className="font-semibold text-slate-500">Last Updated</TableHead>
+                    <TableHead className="text-right pr-6 font-semibold text-slate-500">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -294,52 +291,52 @@ export const AdminInventory = () => {
                     const isOutOfStock = item.available_quantity === 0;
                     
                     return (
-                      <TableRow key={item.productId} className={`hover:bg-muted/30 transition-colors ${isOutOfStock ? 'bg-destructive/5 hover:bg-destructive/10' : ''}`}>
+                      <TableRow key={item.productId} className={`hover:bg-slate-50/50 border-slate-50 transition-colors ${isOutOfStock ? 'bg-red-50/50' : ''}`}>
                         <TableCell className="font-medium py-3 px-6">
                           <div className="flex items-center gap-4">
                             <div className="relative">
                               <img src={item.image_url || 'https://images.unsplash.com/photo-1560393464-5c69a73c5770?w=500&q=80'} alt={item.name} className="w-10 h-10 rounded-lg object-cover shadow-sm" />
-                              {isOutOfStock && <div className="absolute inset-0 bg-background/50 rounded-lg backdrop-blur-[1px]"></div>}
+                              {isOutOfStock && <div className="absolute inset-0 bg-white/50 rounded-lg backdrop-blur-[1px]"></div>}
                             </div>
                             <div>
-                              <p className="font-semibold">{item.name}</p>
-                              <p className="text-xs text-muted-foreground">{item.category}</p>
+                              <p className="font-bold text-slate-900 text-sm">{item.name}</p>
+                              <p className="text-xs text-slate-500">{item.category}</p>
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell className="font-mono text-xs text-muted-foreground">{item.sku || 'N/A'}</TableCell>
+                        <TableCell className="font-mono text-xs text-slate-400">{item.sku || 'N/A'}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex flex-col items-end gap-1.5">
-                            <span className={`font-bold text-base ${isOutOfStock ? 'text-destructive' : isLowStock ? 'text-amber-500' : ''}`}>
+                            <span className={`font-black text-sm ${isOutOfStock ? 'text-destructive' : isLowStock ? 'text-amber-500' : 'text-slate-900'}`}>
                               {item.available_quantity}
                             </span>
                             {/* Visual Stock Indicator */}
-                            <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
+                            <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                               <div 
-                                className={`h-full rounded-full ${isOutOfStock ? 'bg-destructive' : isLowStock ? 'bg-amber-500' : 'bg-green-500'}`}
+                                className={`h-full rounded-full ${isOutOfStock ? 'bg-destructive' : isLowStock ? 'bg-amber-500' : 'bg-emerald-500'}`}
                                 style={{ width: `${Math.max(5, stockPercentage)}%` }}
                               ></div>
                             </div>
                           </div>
                         </TableCell>
                         <TableCell className="text-right">
-                          <Badge variant="outline" className="bg-background/50">{item.reserved_quantity}</Badge>
+                          <Badge variant="outline" className="bg-slate-50 border-slate-200 text-slate-600 font-bold">{item.reserved_quantity}</Badge>
                         </TableCell>
                         <TableCell className="text-center">
                           <Badge 
                             variant={isOutOfStock ? 'destructive' : isLowStock ? 'secondary' : 'default'}
-                            className={`
-                              ${isLowStock ? 'bg-amber-100 text-amber-800 hover:bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400' : ''}
+                            className={`text-[10px] uppercase tracking-wider font-bold
+                              ${isLowStock ? 'bg-amber-100 text-amber-800 hover:bg-amber-100' : ''}
                             `}
                           >
                             {isOutOfStock ? 'Out of Stock' : isLowStock ? 'Low Stock' : 'In Stock'}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-xs text-muted-foreground font-medium">
+                        <TableCell className="text-xs text-slate-500 font-medium">
                           {item.updated_at ? format(new Date(item.updated_at), 'MMM dd, HH:mm') : 'N/A'}
                         </TableCell>
                         <TableCell className="text-right pr-6">
-                          <Button variant="ghost" size="icon" onClick={() => handleEditClick(item)} className="hover:bg-primary/10 hover:text-primary">
+                          <Button variant="ghost" size="icon" onClick={() => handleEditClick(item)} className="text-slate-400 hover:text-indigo-600 hover:bg-indigo-50">
                             <Edit className="h-4 w-4" />
                           </Button>
                         </TableCell>

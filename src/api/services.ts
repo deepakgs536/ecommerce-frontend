@@ -207,5 +207,8 @@ export const AnalyticsAPI = {
   },
   getPaymentAnalytics: async () => {
     return axiosClient.get('/analytics/payments');
+  },
+  getGeneratedReport: async () => {
+    return axiosClient.get('/generate/report');
   }
 };

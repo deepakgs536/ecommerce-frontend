@@ -1,11 +1,12 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Package, ShoppingBag, CreditCard, Settings, BarChart, Menu, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { 
+  Package, ShoppingBag, Settings, ChevronLeft, ChevronRight, Menu, X, CreditCard, BarChart
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '../ui/button';
 import { useState } from 'react';
 
 const navItems = [
-  { name: 'Dashboard', path: '/admin', icon: LayoutDashboard },
   { name: 'Products', path: '/admin/products', icon: Package },
   { name: 'Inventory', path: '/admin/inventory', icon: Package },
   { name: 'Orders', path: '/admin/orders', icon: ShoppingBag },

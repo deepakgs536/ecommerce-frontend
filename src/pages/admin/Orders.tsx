@@ -90,58 +90,58 @@ export const AdminOrders = () => {
 
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="min-h-[calc(100vh-64px)] bg-[#F8FAFC] py-8 px-4 sm:px-8">
+      <div className="flex flex-col md:flex-row md:items-end justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Orders Management</h1>
-          <p className="text-muted-foreground mt-1">View and process customer orders.</p>
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">Orders Management</h1>
+          <p className="text-slate-500 mt-1 text-sm font-medium">View and process customer orders.</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <Card className="premium-shadow border-none bg-primary/5">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <Card className="border-none shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] rounded-[1.5rem] bg-white overflow-hidden hover:-translate-y-1 transition-all duration-300">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Orders</CardTitle>
+            <CardTitle className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Orders</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{loading ? '-' : orders.length}</div>
+            <div className="text-3xl font-black text-slate-900">{loading ? '-' : orders.length}</div>
           </CardContent>
         </Card>
-        <Card className="premium-shadow border-none bg-orange-500/10">
+        <Card className="border-none shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] rounded-[1.5rem] bg-white overflow-hidden hover:-translate-y-1 transition-all duration-300">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-orange-600">To Process (Paid)</CardTitle>
+            <CardTitle className="text-xs font-semibold text-amber-500 uppercase tracking-wider">To Process (Paid)</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-orange-700">
+            <div className="text-3xl font-black text-slate-900">
               {loading ? '-' : orders.filter(o => o.status === 'PAID').length}
             </div>
           </CardContent>
         </Card>
-        <Card className="premium-shadow border-none bg-blue-500/10">
+        <Card className="border-none shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] rounded-[1.5rem] bg-white overflow-hidden hover:-translate-y-1 transition-all duration-300">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-blue-600">In Transit</CardTitle>
+            <CardTitle className="text-xs font-semibold text-blue-500 uppercase tracking-wider">In Transit</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-blue-700">
+            <div className="text-3xl font-black text-slate-900">
               {loading ? '-' : orders.filter(o => o.status === 'SHIPPED').length}
             </div>
           </CardContent>
         </Card>
-        <Card className="premium-shadow border-none bg-green-500/10">
+        <Card className="border-none shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] rounded-[1.5rem] bg-white overflow-hidden hover:-translate-y-1 transition-all duration-300">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-green-600">Revenue</CardTitle>
+            <CardTitle className="text-xs font-semibold text-emerald-500 uppercase tracking-wider">Revenue</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-green-700">
+            <div className="text-3xl font-black text-slate-900">
               {loading ? '-' : `$${orders.reduce((acc, curr) => acc + (curr.total_amount || 0), 0).toFixed(2)}`}
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <Card className="premium-shadow">
-        <CardHeader>
-          <CardTitle>Recent Orders</CardTitle>
+      <Card className="border-none shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] rounded-[2rem] bg-white overflow-hidden">
+        <CardHeader className="px-6 pt-6 pb-3 border-b border-slate-50">
+          <CardTitle className="text-lg font-bold text-slate-900">Recent Orders</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -154,13 +154,13 @@ export const AdminOrders = () => {
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>Order / Items</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Total</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                  <TableRow className="border-slate-50 hover:bg-transparent">
+                    <TableHead className="font-semibold text-slate-500">Order / Items</TableHead>
+                    <TableHead className="font-semibold text-slate-500">Date</TableHead>
+                    <TableHead className="font-semibold text-slate-500">Customer</TableHead>
+                    <TableHead className="font-semibold text-slate-500">Total</TableHead>
+                    <TableHead className="font-semibold text-slate-500">Status</TableHead>
+                    <TableHead className="text-right font-semibold text-slate-500">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -175,19 +175,19 @@ export const AdminOrders = () => {
                     return (
                     <TableRow 
                       key={order.orderId}
-                      className="hover:bg-muted/50 cursor-pointer transition-colors"
+                      className="border-slate-50 hover:bg-slate-50/50 cursor-pointer transition-colors"
                       onClick={() => setSelectedOrder(order)}
                     >
                       <TableCell>
-                        <p className="font-bold text-sm truncate max-w-[200px]">{orderTitle}</p>
-                        <p className="font-mono text-xs text-muted-foreground">{order.orderId.substring(0, 8)}</p>
+                        <p className="font-bold text-slate-900 text-sm truncate max-w-[200px]">{orderTitle}</p>
+                        <p className="font-mono text-xs text-slate-400 mt-0.5">{order.orderId.substring(0, 8)}</p>
                       </TableCell>
-                      <TableCell>{order.created_at ? format(new Date(order.created_at), 'MMM dd, yyyy') : 'N/A'}</TableCell>
+                      <TableCell className="text-slate-500 font-medium text-sm">{order.created_at ? format(new Date(order.created_at), 'MMM dd, yyyy') : 'N/A'}</TableCell>
                       <TableCell>
-                        <p className="font-medium text-sm text-slate-900">{userNames[order.userId] || 'Unknown User'}</p>
+                        <p className="font-bold text-sm text-slate-900">{userNames[order.userId] || 'Unknown User'}</p>
                       </TableCell>
-                      <TableCell className="font-medium">${(order.total_amount || 0).toFixed(2)}</TableCell>
-                      <TableCell>{getStatusBadge(order.status)}</TableCell>
+                      <TableCell className="font-bold text-slate-900 text-sm">${(order.total_amount || 0).toFixed(2)}</TableCell>
+                      <TableCell><div className="scale-90 origin-left">{getStatusBadge(order.status)}</div></TableCell>
                       <TableCell className="text-right space-x-2">
                         {order.status === 'PAID' && (
                           <Button 

@@ -1,275 +1,364 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from '@/store';
-import { loginSuccess, logout } from '@/store/slices/authSlice';
-import { useNavigate } from 'react-router-dom';
-import { UserAPI, MediaAPI } from '@/api/services';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Card, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
-
+import { LogOut, User, ShieldCheck, Mail, Camera, Loader2, Edit3, Image as ImageIcon } from 'lucide-react';
+import { signOut } from 'aws-amplify/auth';
+import { logout } from '@/store/slices/authSlice';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Camera, Save, Loader2, User as UserIcon, LogOut } from 'lucide-react';
+import { UserAPI, MediaAPI } from '@/api/services';
 
 export const AdminSettings = () => {
-  const { user, token } = useSelector((state: RootState) => state.auth);
+  const { user } = useSelector((state: RootState) => state.auth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  
-  const [profileData, setProfileData] = useState({
-    name: '',
-    email: '',
-    role: '',
-    profile_image_url: ''
-  });
+
+  // Core Data State
+  const [profileData, setProfileData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [imageUploading, setImageUploading] = useState(false);
   
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  // Display images
+  const [profileImageSrc, setProfileImageSrc] = useState<string | null>(null);
+  const [backgroundImageSrc, setBackgroundImageSrc] = useState<string | null>(null);
+
+  // Edit State
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editAvatarFile, setEditAvatarFile] = useState<File | null>(null);
+  const [editCoverFile, setEditCoverFile] = useState<File | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const editAvatarInputRef = useRef<HTMLInputElement>(null);
+  const editCoverInputRef = useRef<HTMLInputElement>(null);
+
+  const fetchProfile = async () => {
+    if (!user?.id) return;
+    setLoading(true);
+    try {
+      const response = await UserAPI.getProfile(user.id);
+      const data = response.data.data || response.data;
+      setProfileData(data);
+
+      if (data.profile_image_url) {
+        try {
+          const mediaResponse = await MediaAPI.getDownloadUrl(data.profile_image_url);
+          setProfileImageSrc(mediaResponse.data.url);
+        } catch (err) {
+          console.error('Failed to load profile image', err);
+        }
+      }
+      
+      if (data.profile_background_url) {
+        try {
+          const mediaResponse = await MediaAPI.getDownloadUrl(data.profile_background_url);
+          setBackgroundImageSrc(mediaResponse.data.url);
+        } catch (err) {
+          console.error('Failed to load background image', err);
+        }
+      }
+    } catch (error) {
+      toast.error('Failed to load profile details');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      if (!user?.id) return;
-      try {
-        const res = await UserAPI.getProfile(user.id);
-        const data = res.data.data || res.data;
-        
-        let signedImageUrl = data.profile_image_url;
-        // If there's an image key, resolve its signed URL for display
-        if (signedImageUrl && !signedImageUrl.startsWith('http')) {
-          try {
-            const mediaRes = await MediaAPI.getDownloadUrl(signedImageUrl);
-            signedImageUrl = mediaRes.data.url;
-          } catch (e) {
-            console.error('Failed to resolve profile image URL', e);
-          }
-        }
-        
-        setProfileData({
-          name: data.name || user.name || '',
-          email: data.email || user.email || '',
-          role: data.role || user.role || '',
-          profile_image_url: signedImageUrl || ''
-        });
-      } catch (error) {
-        toast.error('Failed to load profile data');
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchProfile();
   }, [user]);
 
-  const handleImageClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !user?.id) return;
-
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please select an image file');
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image must be less than 5MB');
-      return;
-    }
-
-    setImageUploading(true);
+  const handleSignOut = async () => {
     try {
-      // 1. Get presigned upload URL
-      const { data } = await MediaAPI.getUploadUrl({
-        folder: `profiles/${user.id}`,
-        fileName: file.name.replace(/\s+/g, '-'),
-        contentType: file.type
-      });
-
-      // 2. Upload directly to S3
-      await MediaAPI.uploadToS3(data.uploadUrl, file);
-
-      // 3. Immediately save the new image key to the user profile
-      const s3Key = data.key;
-      await UserAPI.updateProfile(user.id, { profile_image_url: s3Key });
-      
-      // 4. Fetch the download URL so we can display it right now
-      const mediaRes = await MediaAPI.getDownloadUrl(s3Key);
-      
-      setProfileData(prev => ({ ...prev, profile_image_url: mediaRes.data.url }));
-      toast.success('Profile picture updated successfully');
-    } catch (error) {
-      toast.error('Failed to upload image');
-      console.error(error);
-    } finally {
-      setImageUploading(false);
-      // Reset input
-      if (fileInputRef.current) fileInputRef.current.value = '';
+      await signOut();
+      dispatch(logout());
+      navigate('/login');
+      toast.success('Successfully signed out');
+    } catch (error: any) {
+      toast.error('Error signing out');
     }
   };
 
-  const handleSave = async () => {
-    if (!user?.id) return;
-    setSaving(true);
-    try {
-      await UserAPI.updateProfile(user.id, {
-        name: profileData.name
-      });
-      
-      // Update Redux state with new name
-      if (token) {
-        dispatch(loginSuccess({
-          user: { ...user, name: profileData.name },
-          token
-        }));
+  const openEditMode = () => {
+    setEditName(profileData?.name || user?.name || '');
+    setEditAvatarFile(null);
+    setEditCoverFile(null);
+    setIsEditing(true);
+  };
+  
+  const cancelEditMode = () => {
+    setIsEditing(false);
+    setEditAvatarFile(null);
+    setEditCoverFile(null);
+    
+    // Revoke object URLs to avoid memory leaks if we created any
+    if (editAvatarFile && profileImageSrc?.startsWith('blob:')) {
+      URL.revokeObjectURL(profileImageSrc);
+    }
+    if (editCoverFile && backgroundImageSrc?.startsWith('blob:')) {
+      URL.revokeObjectURL(backgroundImageSrc);
+    }
+    
+    // Re-fetch to restore original images
+    fetchProfile();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'profiles' | 'banners') => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+      if (!validTypes.includes(file.type)) {
+        toast.error('Invalid file type. Only JPEG, PNG, and WebP allowed.');
+        return;
       }
       
-      toast.success('Profile updated successfully');
-    } catch (error) {
-      toast.error('Failed to update profile');
-    } finally {
-      setSaving(false);
+      const objectUrl = URL.createObjectURL(file);
+      
+      if (type === 'profiles') {
+        setEditAvatarFile(file);
+        setProfileImageSrc(objectUrl);
+      }
+      if (type === 'banners') {
+        setEditCoverFile(file);
+        setBackgroundImageSrc(objectUrl);
+      }
     }
   };
 
-  const handleLogout = () => {
-    dispatch(logout());
-    toast.success('Logged out successfully');
-    navigate('/login');
+  const uploadFileToS3 = async (file: File, folder: 'profiles' | 'banners') => {
+    const uploadUrlResponse = await MediaAPI.getUploadUrl({
+      folder,
+      fileName: file.name,
+      contentType: file.type,
+    });
+
+    const resData = uploadUrlResponse.data.data || uploadUrlResponse.data;
+    const { uploadUrl, key } = resData;
+
+    if (!uploadUrl) throw new Error('No upload URL returned');
+
+    await MediaAPI.uploadToS3(uploadUrl, file);
+    return key;
   };
 
-  if (loading) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
+  const handleSaveChanges = async () => {
+    if (!user?.id) return;
+    setIsSaving(true);
+    
+    try {
+      const payload: any = { name: editName };
+
+      // Sequentially upload images if selected
+      if (editAvatarFile) {
+        toast.info('Uploading profile picture...');
+        const avatarKey = await uploadFileToS3(editAvatarFile, 'profiles');
+        payload.profile_image_url = avatarKey;
+      }
+
+      if (editCoverFile) {
+        toast.info('Uploading cover photo...');
+        const coverKey = await uploadFileToS3(editCoverFile, 'banners');
+        payload.profile_background_url = coverKey;
+      }
+
+      toast.info('Saving profile changes...');
+      await UserAPI.updateProfile(user.id, payload);
+      
+      toast.success('Profile updated successfully!');
+      setIsEditing(false);
+      
+      // Refresh the view to get the final S3 presigned URLs instead of our blob URLs
+      await fetchProfile();
+
+    } catch (error: any) {
+      toast.error('Failed to update profile. Please try again.');
+      console.error(error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (!user) return null;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900">Settings</h1>
-        <p className="text-slate-500 mt-1">Manage your account settings and profile preferences.</p>
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-[1fr_2fr]">
-        <Card className="shadow-sm border-slate-100">
-          <CardHeader>
-            <CardTitle>Profile Picture</CardTitle>
-            <CardDescription>Click the image to upload a new one.</CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col items-center justify-center py-6">
+    <div className="container mx-auto py-12 px-4 min-h-[calc(100vh-64px)] flex items-start justify-center bg-[#F8FAFC]">
+      
+      <Card className="w-full max-w-4xl border-none shadow-2xl shadow-indigo-100/50 rounded-[2.5rem] overflow-hidden relative bg-white mt-4">
+        
+        {/* Background Cover Area */}
+        <div className="h-72 w-full relative group">
+          {loading ? (
+            <Skeleton className="w-full h-full rounded-none" />
+          ) : backgroundImageSrc ? (
+            <>
+              <img src={backgroundImageSrc} alt="Cover" className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-slate-900/10 to-transparent"></div>
+            </>
+          ) : (
+            <div className="w-full h-full bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 relative">
+               <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-30"></div>
+            </div>
+          )}
+          
+          {/* Edit Overlay for Cover */}
+          {isEditing && (
             <div 
-              className="relative group cursor-pointer w-40 h-40 rounded-full overflow-hidden border-4 border-white shadow-lg bg-slate-100 flex items-center justify-center"
-              onClick={handleImageClick}
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer"
+              onClick={() => editCoverInputRef.current?.click()}
             >
-              {profileData.profile_image_url ? (
-                <img 
-                  src={profileData.profile_image_url} 
-                  alt="Profile" 
-                  className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                />
-              ) : (
-                <UserIcon className="w-16 h-16 text-slate-300" />
+              <Button variant="secondary" size="lg" className="rounded-full shadow-2xl font-bold pointer-events-none hover:scale-105 transition-transform">
+                <ImageIcon className="w-5 h-5 mr-2" /> Change Cover Photo
+              </Button>
+            </div>
+          )}
+          <input type="file" ref={editCoverInputRef} className="hidden" accept="image/jpeg, image/png, image/webp" onChange={(e) => handleFileChange(e, 'banners')} />
+        </div>
+
+        {/* Profile Content Container */}
+        <div className="px-6 sm:px-10 pb-10">
+          
+          {/* Avatar & Action Button Row */}
+          <div className="flex justify-between items-start relative -mt-16 sm:-mt-20 mb-4">
+            
+            {/* Avatar */}
+            <div className="relative group/avatar z-20">
+              <div className="w-32 h-32 sm:w-40 sm:h-40 bg-white rounded-full p-1.5 shadow-sm relative overflow-hidden">
+                <div className="w-full h-full relative rounded-full overflow-hidden bg-slate-50 border border-slate-100">
+                  {profileImageSrc ? (
+                    <img src={profileImageSrc} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <User className="w-12 h-12 text-slate-300" />
+                    </div>
+                  )}
+                  
+                  {/* Edit Overlay for Avatar */}
+                  {isEditing && (
+                    <div 
+                      className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm flex flex-col items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-all duration-300 rounded-full cursor-pointer"
+                      onClick={() => editAvatarInputRef.current?.click()}
+                    >
+                      <Camera className="w-8 h-8 text-white mb-1 drop-shadow-md" />
+                      <span className="text-[11px] text-white font-bold uppercase tracking-wider drop-shadow-md">Update</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <input type="file" ref={editAvatarInputRef} className="hidden" accept="image/jpeg, image/png, image/webp" onChange={(e) => handleFileChange(e, 'profiles')} />
+            </div>
+
+            {/* Action Buttons */}
+            <div className="pt-20 sm:pt-24 flex gap-3 z-10">
+              {!loading && !isEditing && (
+                <Button onClick={openEditMode} variant="outline" className="rounded-full h-10 px-6 font-semibold border-slate-300 hover:bg-slate-50 text-slate-700 transition-all">
+                  <Edit3 className="w-4 h-4 mr-2" /> Edit Profile
+                </Button>
               )}
-              
-              <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                {imageUploading ? (
-                  <Loader2 className="w-8 h-8 text-white animate-spin" />
-                ) : (
-                  <>
-                    <Camera className="w-8 h-8 text-white mb-2" />
-                    <span className="text-white text-xs font-semibold">Change Photo</span>
-                  </>
-                )}
+              {isEditing && (
+                <>
+                  <Button 
+                    variant="ghost" 
+                    size="lg" 
+                    onClick={cancelEditMode}
+                    disabled={isSaving}
+                    className="h-10 px-6 rounded-full font-semibold transition-all hover:bg-slate-100"
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    size="lg" 
+                    onClick={handleSaveChanges}
+                    disabled={isSaving}
+                    className="h-10 px-6 rounded-full font-semibold shadow-sm transition-all bg-slate-900 hover:bg-slate-800 text-white"
+                  >
+                    {isSaving ? <Loader2 className="mr-2 w-4 h-4 animate-spin" /> : null}
+                    {isSaving ? 'Saving...' : 'Save'}
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Header Info (Name & Description) */}
+          <div className="mb-8">
+            {loading ? (
+               <div className="space-y-3">
+                 <Skeleton className="h-8 w-48" />
+                 <Skeleton className="h-4 w-64" />
+               </div>
+            ) : isEditing ? (
+              <div className="space-y-2 max-w-md animate-in fade-in duration-300">
+                <Input 
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  disabled={isSaving}
+                  placeholder="Your Name"
+                  className="h-12 text-xl font-bold text-slate-900 border-slate-200 focus-visible:ring-slate-900 rounded-xl"
+                />
+                <p className="text-slate-500 font-medium text-sm px-1 flex items-center">
+                  <Edit3 className="w-3 h-3 mr-1.5" /> Updating display name
+                </p>
               </div>
-            </div>
-            
-            <input 
-              type="file"
-              ref={fileInputRef}
-              className="hidden"
-              accept="image/*"
-              onChange={handleImageChange}
-            />
-            
-            <p className="text-xs text-slate-400 mt-6 text-center max-w-[200px]">
-              Supported formats: JPEG, PNG, WEBP. Max size: 5MB.
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-sm border-slate-100">
-          <CardHeader>
-            <CardTitle>Personal Information</CardTitle>
-            <CardDescription>Update your personal details here.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <label htmlFor="name" className="text-sm font-medium leading-none">Full Name</label>
-              <Input 
-                id="name"
-                value={profileData.name}
-                onChange={(e) => setProfileData(prev => ({ ...prev, name: e.target.value }))}
-                className="h-11"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium leading-none">Email Address</label>
-              <Input 
-                id="email"
-                value={profileData.email}
-                disabled
-                className="h-11 bg-slate-50 text-slate-500 cursor-not-allowed"
-              />
-              <p className="text-xs text-slate-400">Email addresses cannot be changed.</p>
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="role" className="text-sm font-medium leading-none">Account Role</label>
-              <div className="h-11 px-4 py-2 bg-slate-50 border border-slate-200 rounded-md text-slate-700 capitalize font-medium flex items-center">
-                {profileData.role}
+            ) : (
+              <div className="animate-in fade-in duration-500">
+                <CardTitle className="text-xl sm:text-2xl font-bold text-slate-900 mb-1">{profileData?.name || user.name || 'Valued Member'}</CardTitle>
+                <p className="text-slate-500 text-sm">{profileData?.email || user.email}</p>
               </div>
-            </div>
+            )}
+          </div>
 
-            <div className="pt-4 flex justify-end">
-              <Button onClick={handleSave} disabled={saving} className="h-11 px-8 rounded-xl shadow-lg shadow-primary/20">
-                {saving ? (
-                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</>
-                ) : (
-                  <><Save className="mr-2 h-4 w-4" /> Save Changes</>
-                )}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="pt-6">
-        <Card className="shadow-sm border-red-100 bg-red-50/30">
-          <CardHeader>
-            <CardTitle className="text-red-600 flex items-center gap-2">
-              Account Actions
-            </CardTitle>
-            <CardDescription className="text-red-600/80">Manage your session and account security.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-red-100 shadow-sm">
-              <div>
-                <h4 className="font-medium text-slate-900">Sign Out</h4>
-                <p className="text-sm text-slate-500">Log out of your admin account on this device.</p>
+          {/* Content Grid */}
+          <div className="space-y-8">
+            {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Skeleton className="h-24 w-full rounded-2xl" />
+                <Skeleton className="h-24 w-full rounded-2xl" />
               </div>
-              <Button onClick={handleLogout} variant="destructive" className="shadow-md">
-                <LogOut className="mr-2 h-4 w-4" /> Log Out
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <div className={`flex items-center p-6 bg-white rounded-2xl border border-slate-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-300 ${isEditing ? 'opacity-60 scale-[0.98]' : ''}`}>
+                  <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center mr-4 shrink-0 text-indigo-600">
+                    <Mail className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-0.5">Email Address</p>
+                    <p className="font-semibold text-slate-800 text-base">{profileData?.email || user.email}</p>
+                  </div>
+                </div>
+                
+                <div className={`flex items-center p-6 bg-white rounded-2xl border border-slate-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-300 ${isEditing ? 'opacity-60 scale-[0.98]' : ''}`}>
+                  <div className="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center mr-4 shrink-0 text-purple-600">
+                    <ShieldCheck className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-0.5">Account Role</p>
+                    <p className="font-semibold text-slate-800 text-base capitalize">{profileData?.role || user.role}</p>
+                  </div>
+                </div>
+
+              </div>
+            )}
+
+            {!isEditing && (
+              <div className="pt-8 flex justify-end animate-in fade-in duration-500">
+                <Button 
+                  variant="ghost"
+                  size="lg" 
+                  onClick={handleSignOut}
+                  className="h-12 px-6 rounded-full font-bold text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors"
+                >
+                  <LogOut className="mr-2 w-5 h-5" />
+                  Sign Out
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      </Card>
     </div>
   );
 };

@@ -105,13 +105,13 @@ export const AdminProducts = () => {
   }, []);
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+    <div className="min-h-[calc(100vh-64px)] bg-[#F8FAFC] py-8 px-4 sm:px-8">
+      <div className="flex flex-col md:flex-row md:items-end justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Products Management</h1>
-          <p className="text-slate-500 mt-1">Manage your store inventory and pricing.</p>
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">Products Management</h1>
+          <p className="text-slate-500 mt-1 text-sm font-medium">Manage your store inventory and pricing.</p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 mt-4 md:mt-0">
           {/* DEMO PURPOSES: Verify Role */}
           <div className="hidden md:flex items-center gap-2 bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl">
             <ShieldCheck className="w-5 h-5 text-indigo-500" />
@@ -127,9 +127,9 @@ export const AdminProducts = () => {
         </div>
       </div>
 
-      <Card className="premium-shadow">
-        <CardHeader>
-          <CardTitle>All Products</CardTitle>
+      <Card className="border-none shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] rounded-[2rem] bg-white overflow-hidden">
+        <CardHeader className="px-6 pt-6 pb-3 border-b border-slate-50">
+          <CardTitle className="text-lg font-bold text-slate-900">All Products</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -141,34 +141,34 @@ export const AdminProducts = () => {
           ) : (
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[80px]">Image</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                <TableRow className="border-slate-50 hover:bg-transparent">
+                  <TableHead className="w-[80px] font-semibold text-slate-500">Image</TableHead>
+                  <TableHead className="font-semibold text-slate-500">Name</TableHead>
+                  <TableHead className="font-semibold text-slate-500">Category</TableHead>
+                  <TableHead className="font-semibold text-slate-500">Price</TableHead>
+                  <TableHead className="font-semibold text-slate-500">Status</TableHead>
+                  <TableHead className="text-right font-semibold text-slate-500">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {products.map(product => (
-                  <TableRow key={product.productId}>
+                  <TableRow key={product.productId} className="border-slate-50 hover:bg-slate-50/50 transition-colors">
                     <TableCell>
-                      <img src={product.image_url || 'https://images.unsplash.com/photo-1560393464-5c69a73c5770?w=500&q=80'} alt={product.name} className="w-12 h-12 rounded object-cover" />
+                      <img src={product.image_url || 'https://images.unsplash.com/photo-1560393464-5c69a73c5770?w=500&q=80'} alt={product.name} className="w-12 h-12 rounded-xl object-cover shadow-sm" />
                     </TableCell>
-                    <TableCell className="font-medium">{product.name}</TableCell>
-                    <TableCell>{product.category}</TableCell>
-                    <TableCell>${product.price.toFixed(2)}</TableCell>
+                    <TableCell className="font-bold text-slate-900 text-sm">{product.name}</TableCell>
+                    <TableCell className="text-slate-500 font-medium text-sm">{product.category}</TableCell>
+                    <TableCell className="font-bold text-slate-900 text-sm">${product.price.toFixed(2)}</TableCell>
                     <TableCell>
-                      <Badge variant={product.stock_status === 'IN_STOCK' ? 'default' : 'destructive'}>
+                      <Badge variant={product.stock_status === 'IN_STOCK' ? 'default' : 'destructive'} className="text-[10px] uppercase tracking-wider font-bold">
                         {product.stock_status}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" className="mr-2" onClick={() => handleEditClick(product)}>
+                      <Button variant="ghost" size="icon" className="mr-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50" onClick={() => handleEditClick(product)}>
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => setDeletingProduct(product)}>
+                      <Button variant="ghost" size="icon" className="text-slate-400 hover:text-rose-600 hover:bg-rose-50" onClick={() => setDeletingProduct(product)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </TableCell>
