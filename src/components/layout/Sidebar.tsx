@@ -14,7 +14,7 @@ const navItems = [
   { name: 'Analytics', path: '/admin/analytics', icon: BarChart },
   { name: 'Settings', path: '/admin/settings', icon: Settings },
 ];
-
+ 
 export const Sidebar = () => {
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
