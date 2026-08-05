@@ -93,7 +93,7 @@ export const Login = () => {
         toast.success('Welcome back!');
         
         if (userRole === 'admin') {
-          navigate('/admin');
+          navigate('/admin/products');
         } else {
           navigate('/');
         }

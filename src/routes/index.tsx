@@ -134,7 +134,7 @@ const router = createBrowserRouter([
     element: <ProtectedRoute role="admin"><AdminLayout /></ProtectedRoute>,
     errorElement: <NotFound />,
     children: [
-      { index: true, element: <AdminDashboard /> },
+      // { index: true, element: <AdminDashboard /> },
       {
         path: 'products',
         element: <AdminProducts />,
