@@ -15,7 +15,7 @@ const PaymentStatus = lazy(() => import('@/pages/PaymentStatus').then(module => 
 // const AdminDashboard = lazy(() => import('@/pages/admin/Dashboard').then(module => ({ default: module.AdminDashboard }))); 
 const AdminProducts = lazy(() => import('@/pages/admin/Products').then(module => ({ default: module.AdminProducts })));
 const AdminCreateProduct = lazy(() => import('@/pages/admin/CreateProduct').then(module => ({ default: module.CreateProduct })));
-// const AdminMedia = lazy(() => import('@/pages/admin/MediaUpload').then(module => ({ default: module.MediaUpload })));
+// const AdminMedia = lazy(() => import('@/pages/admin/MediaUpload').then(module => ({ default: module.MediaUpload }))); 
 const AdminOrders = lazy(() => import('@/pages/admin/Orders').then(module => ({ default: module.AdminOrders })));
 const AdminInventory = lazy(() => import('@/pages/admin/Inventory').then(module => ({ default: module.AdminInventory })));
 const AdminPayments = lazy(() => import('@/pages/admin/Payments').then(module => ({ default: module.AdminPayments })));
