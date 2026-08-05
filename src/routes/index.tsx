@@ -64,7 +64,7 @@ const AdminRedirectGuard = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
 
   if (isAuthenticated && user?.role === 'admin') {
-    return <Navigate to="/admin" replace />;
+    return <Navigate to="/admin/products" replace />;
   }
 
   return <>{children}</>;
@@ -134,7 +134,7 @@ const router = createBrowserRouter([
     element: <ProtectedRoute role="admin"><AdminLayout /></ProtectedRoute>,
     errorElement: <NotFound />,
     children: [
-      // { index: true, element: <AdminDashboard /> },
+      { index: true, element: <Navigate to="/admin/products" replace /> },
       {
         path: 'products',
         element: <AdminProducts />,
