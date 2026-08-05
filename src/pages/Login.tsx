@@ -72,7 +72,7 @@ export const Login = () => {
         });
         
         const session = await fetchAuthSession();
-        const accessToken = session.tokens?.accessToken?.toString() || '';
+        const idToken = session.tokens?.idToken?.toString() || '';
         const payload = session.tokens?.idToken?.payload || {};
         
         // Extract role from Cognito Groups (e.g., ['admin'])
@@ -87,9 +87,9 @@ export const Login = () => {
           role: userRole
         };
 
-        console.log('User logged in:', user, 'Access Token:', accessToken, 'Role:', userRole);
+        console.log('User logged in:', user, 'ID Token:', idToken, 'Role:', userRole);
 
-        dispatch(loginSuccess({ user, token: accessToken }));
+        dispatch(loginSuccess({ user, token: idToken }));
         toast.success('Welcome back!');
         
         if (userRole === 'admin') {
