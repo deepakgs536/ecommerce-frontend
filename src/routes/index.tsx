@@ -12,7 +12,7 @@ const Checkout = lazy(() => import('@/pages/Checkout').then(module => ({ default
 const Orders = lazy(() => import('@/pages/Orders').then(module => ({ default: module.Orders })));
 const OrderDetails = lazy(() => import('@/pages/OrderDetails').then(module => ({ default: module.OrderDetails })));
 const PaymentStatus = lazy(() => import('@/pages/PaymentStatus').then(module => ({ default: module.PaymentStatus })));
-const AdminDashboard = lazy(() => import('@/pages/admin/Dashboard').then(module => ({ default: module.AdminDashboard })));
+// const AdminDashboard = lazy(() => import('@/pages/admin/Dashboard').then(module => ({ default: module.AdminDashboard })));
 const AdminProducts = lazy(() => import('@/pages/admin/Products').then(module => ({ default: module.AdminProducts })));
 const AdminCreateProduct = lazy(() => import('@/pages/admin/CreateProduct').then(module => ({ default: module.CreateProduct })));
 // const AdminMedia = lazy(() => import('@/pages/admin/MediaUpload').then(module => ({ default: module.MediaUpload })));
