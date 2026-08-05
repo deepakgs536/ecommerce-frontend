@@ -216,7 +216,7 @@ export const AdminInventory = () => {
           <div className="flex items-center gap-3">
             <AlertCircle className="text-amber-600 w-5 h-5" />
             <span className="font-bold text-amber-800">
-              Low Stock & Depleted Items ({inventoryItems.filter(i => i.available_quantity < 10).length})
+              Low Stock & Depleted Items ({inventoryItems.filter(i => i.available_quantity <= 10).length})
             </span>
           </div>
           {showLowStock ? (
@@ -227,10 +227,10 @@ export const AdminInventory = () => {
         </button>
         {showLowStock && (
           <div className="p-5 border-t border-amber-100 space-y-3 bg-amber-50/50 animate-in slide-in-from-top-2 duration-300">
-            {inventoryItems.filter(i => i.available_quantity < 10).length === 0 ? (
-              <p className="text-sm text-amber-700/70 text-center py-4 font-medium">All items have sufficient stock (10+).</p>
+            {inventoryItems.filter(i => i.available_quantity <= 10).length === 0 ? (
+              <p className="text-sm text-amber-700/70 text-center py-4 font-medium">All items have sufficient stock (11+).</p>
             ) : (
-              inventoryItems.filter(i => i.available_quantity < 10).map(item => (
+              inventoryItems.filter(i => i.available_quantity <= 10).map(item => (
                 <div key={item.productId} className="flex items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-slate-100">
                   <div className="flex items-center gap-4">
                     <img src={item.image_url || 'https://images.unsplash.com/photo-1560393464-5c69a73c5770?w=100&q=80'} alt={item.name} className="w-12 h-12 rounded-lg object-cover shadow-sm ring-1 ring-border/50" />
